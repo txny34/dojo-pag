@@ -116,7 +116,7 @@ const res = await fetch('/api/contacto', {
           data = raw ? JSON.parse(raw) : {};
         } catch {}
 
-        setStatusMessage(`¡Hola ${data?.nombre}! 🥋 Recibimos tu interés en ${data?.disciplina}. Te contactaremos pronto para coordinar tu primera clase.`)
+        setStatusMessage(`¡Gracias! 🥋 Recibimos tu consulta. Te contactaremos pronto para coordinar tu primera clase.`)
 
         setValues(initialForm);
         setErrors({});

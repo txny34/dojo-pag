@@ -116,9 +116,7 @@ export default function DojoWebsite() {
           data = raw ? JSON.parse(raw) : {};
         } catch {}
 
-        setStatusMessage(
-          `Gracias ${data?.nombre ?? payload.nombre}, recibimos tu solicitud para ${data?.disciplina ?? payload.disciplina}.`
-        );
+        setStatusMessage(`¡Hola ${data?.nombre}! 🥋 Recibimos tu interés en ${data?.disciplina}. Te contactaremos pronto para coordinar tu primera clase.`)
 
         setValues(initialForm);
         setErrors({});
@@ -170,7 +168,7 @@ export default function DojoWebsite() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 to-gray-900/70 z-10" />
-        <Image src="/placeholder.svg?height=1080&width=1920" alt="Mural Samurái" fill className="object-cover" priority />
+        <Image src="/images/hero/mural.jpeg" alt="Mural Samurái" fill className="object-cover" priority />
         <div className="relative z-20 text-center max-w-4xl mx-auto px-4">
           <h1 className="text-6xl md:text-8xl font-black mb-6 text-white leading-tight">
             FORJA TU
@@ -228,7 +226,7 @@ export default function DojoWebsite() {
                 </div>
               </div>
               <div className="relative">
-                <Image src="/placeholder.svg?height=500&width=600" alt="Interior del Dojo" width={600} height={500} className="rounded-lg shadow-2xl" />
+                <Image src="/images/inside/insidedojo.jpeg" alt="Interior del Dojo" width={600} height={500} className="rounded-lg shadow-2xl" />
               </div>
             </div>
           </div>
@@ -246,10 +244,10 @@ export default function DojoWebsite() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { title: "K-1 Kickboxing", description: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos", image: "/placeholder.svg?height=300&width=400" },
-              { title: "Muay Thai", description: "El arte de las ocho extremidades - puños, codos, rodillas y espinillas", image: "/placeholder.svg?height=300&width=400" },
-              { title: "Boxeo", description: "La dulce ciencia del juego de piernas, timing y golpeo preciso", image: "/placeholder.svg?height=300&width=400" },
-              { title: "Jiu-Jitsu", description: "Técnicas de lucha en el suelo y sumisión", image: "/placeholder.svg?height=300&width=400" },
+              { title: "K-1 Kickboxing", description: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos", image: "/images/disciplines/kickBoxing.jpeg" },
+              { title: "Muay Thai", description: "El arte de las ocho extremidades - puños, codos, rodillas y espinillas", image: "/images/disciplines/muyThai.jpeg" },
+              { title: "Boxeo", description: "La dulce ciencia del juego de piernas, timing y golpeo preciso", image: "/images/disciplines/boxeo.jpeg" },
+              { title: "Jiu-Jitsu", description: "Técnicas de lucha en el suelo y sumisión", image: "/images/disciplines/bjj.jpeg" },
             ].map((discipline, index) => (
               <Card key={index} className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300 hover:scale-105">
                 <div className="relative overflow-hidden">
@@ -327,10 +325,10 @@ export default function DojoWebsite() {
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
-              { name: "Sensei Takeshi Yamamoto", discipline: "Boxeo & K-1", experience: "15+ Años", achievements: "Ex Campeón WBC", image: "/placeholder.svg?height=400&width=300" },
-              { name: "Kru Somchai Jaidee", discipline: "Muay Thai", experience: "20+ Años", achievements: "Campeón Lumpinee Stadium", image: "/placeholder.svg?height=400&width=300" },
-              { name: "Professor Carlos Silva", discipline: "Jiu-Jitsu Brasileño", experience: "18+ Años", achievements: "Cinturón Negro 3er Grado", image: "/placeholder.svg?height=400&width=300" },
-              { name: "Coach Akira Tanaka", discipline: "Artes Marciales Mixtas", experience: "12+ Años", achievements: "Veterano UFC", image: "/placeholder.svg?height=400&width=300" },
+              { name: "Mike Tyson", discipline: "Boxeo & K-1", experience: "15+ Años", achievements: "Ex Campeón WBC", image: "/images/instructor/mikeTyson.jpeg" },
+              { name: "Rodtang Jitmuangnon", discipline: "Muay Thai", experience: "20+ Años", achievements: "Campeón ONE Championship ", image: "/images/instructor/roadTang.jpeg" },
+              { name: "Leandro Lo", discipline: "Jiu-Jitsu Brasileño", experience: "18+ Años", achievements: "Cinturón Negro", image: "/images/instructor/leandro.jpeg" },
+              { name: "Llia Topuria", discipline: "Artes Marciales Mixtas", experience: "12+ Años", achievements: "Doble Campeon UFC", image: "/images/instructor/topuria.jpeg" },
             ].map((instructor, index) => (
               <Card key={index} className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300">
                 <div className="relative overflow-hidden">

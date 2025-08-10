@@ -94,7 +94,7 @@ export default function DojoWebsite() {
           mensaje: values.mensaje.trim(),
         };
 
-        const res = await fetch(`${API}/contactos/`, {
+const res = await fetch('/api/contacto', {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),

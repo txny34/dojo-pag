@@ -52,7 +52,7 @@ const nextConfig = {
 
   // Configuración experimental
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false,
   },
 }
 

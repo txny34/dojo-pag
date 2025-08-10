@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import Script from 'next/script' // ✅ AGREGAR ESTO
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -60,7 +61,14 @@ export default function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#1f2937" />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        {/* ✅ AGREGAR SCRIPT DE RECAPTCHA */}
+        <Script
+          src="https://www.google.com/recaptcha/api.js"
+          strategy="lazyOnload"
+        />
+        {children}
+      </body>
     </html>
   )
 }

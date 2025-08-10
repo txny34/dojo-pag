@@ -9,10 +9,15 @@ import { MapPin, Phone, Mail, Clock, Users, Award, Zap, Shield, Target, Swords }
 import Image from "next/image";
 import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
+import dynamic from "next/dynamic";
+
+// ⛑️ reCAPTCHA dinámico (sin SSR)
+const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), { ssr: false });
 
 // ======= CONFIG =======
 const API = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
 const DISCIPLINAS = ["boxeo", "muay-thai", "k1", "jiu-jitsu"] as const;
+const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
 type Disciplina = typeof DISCIPLINAS[number];
 
@@ -23,6 +28,7 @@ type FormState = {
   telefono: string;
   disciplina: "" | Disciplina;
   mensaje: string;
+  recaptchaToken: string;
 };
 
 const initialForm: FormState = {
@@ -32,6 +38,7 @@ const initialForm: FormState = {
   telefono: "",
   disciplina: "",
   mensaje: "",
+  recaptchaToken: ""
 };
 
 // ======= HELPERS =======
@@ -41,7 +48,7 @@ const disciplinasOK = new Set<string>(DISCIPLINAS);
 
 function validate(values: FormState) {
   const e: Record<string, string> = {};
-  const { nombre, apellido, email, telefono, disciplina, mensaje } = values;
+  const { nombre, apellido, email, telefono, disciplina, mensaje, recaptchaToken } = values;
 
   if (nombre.trim().length < 2) e.nombre = "Mínimo 2 letras.";
   if (apellido.trim().length < 2) e.apellido = "Mínimo 2 letras.";
@@ -49,12 +56,13 @@ function validate(values: FormState) {
   if (telefono && !soloNumeros(telefono.trim())) e.telefono = "Solo números.";
   if (!disciplinasOK.has(disciplina)) e.disciplina = "Elegí una disciplina.";
   if (mensaje.trim().length > 500) e.mensaje = "Máximo 500 caracteres.";
+  if (!recaptchaToken) e.recaptcha = "Completa la verificación reCAPTCHA.";
 
   return e;
 }
 
 /* =========================================================================================
-   DISCIPLINAS: contenido extendido + MODAL (añadido)
+   DISCIPLINAS: contenido extendido + MODAL
 ========================================================================================= */
 type Nivel = "Principiante" | "Intermedio" | "Avanzado";
 
@@ -63,14 +71,14 @@ type DisciplinaInfo = {
   title: string;
   descripcion: string;
   beneficios: string[];
-  niveles: Nivel[]; // <— ahora array
+  niveles: Nivel[];
   duracion: string;
   equipamiento: string[];
   imagen: string;
 };
 
 const DISCIPLINAS_INFO: Record<Disciplina, DisciplinaInfo> = {
-  "k1": {
+  k1: {
     slug: "k1",
     title: "K-1 Kickboxing",
     descripcion: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos.",
@@ -97,12 +105,12 @@ const DISCIPLINAS_INFO: Record<Disciplina, DisciplinaInfo> = {
       "Movilidad y equilibrio",
       "Resistencia mental"
     ],
-    niveles: ["Principiante", "Intermedio", "Avanzado"] ,
+    niveles: ["Principiante", "Intermedio", "Avanzado"],
     duracion: "60 min",
     equipamiento: ["Guantes", "Vendas", "Tibiales", "Protector bucal (sparring)"],
     imagen: "/images/disciplines/muyThai.jpeg",
   },
-  "boxeo": {
+  boxeo: {
     slug: "boxeo",
     title: "Boxeo",
     descripcion: "La dulce ciencia: guardia, desplazamientos, combinaciones y defensa.",
@@ -180,24 +188,18 @@ function ModalDisciplina({
           <h2 className="text-2xl font-black mb-2">{info.title}</h2>
           <p className="text-gray-300">{info.descripcion}</p>
 
-          {/* Nivel + Duración */}
-          {/* Niveles */}
-<div className="mt-4 flex flex-wrap items-center gap-2">
-{info.niveles.map((n) => (
-  <span
-    key={n}
-    className="inline-block px-2 py-1 rounded bg-blue-600 text-white text-xs font-semibold"
-  >
-    {n}
-  </span>
-))}
-
-  <span className="inline-flex items-center gap-2 text-sm text-gray-200">
-    <Clock className="w-4 h-4" />
-    {info.duracion}
-  </span>
-</div>
-
+          {/* Niveles + Duración */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            {info.niveles.map((n) => (
+              <span key={n} className="inline-block px-2 py-1 rounded bg-blue-600 text-white text-xs font-semibold">
+                {n}
+              </span>
+            ))}
+            <span className="inline-flex items-center gap-2 text-sm text-gray-200">
+              <Clock className="w-4 h-4" />
+              {info.duracion}
+            </span>
+          </div>
 
           {/* Beneficios */}
           <div className="mt-5">
@@ -227,16 +229,13 @@ function ModalDisciplina({
           </div>
 
           {/* CTA */}
-          <Button
-            className="mt-6 w-full bg-blue-600 hover:bg-blue-700"
-            onClick={() => onSelect(info.slug)}
-          >
+          <Button className="mt-6 w-full bg-blue-600 hover:bg-blue-700" onClick={() => onSelect(info.slug)}>
             Quiero entrenar {info.title}
           </Button>
         </div>
       </div>
 
-      {/* Fade styles (añadido) */}
+      {/* Fade styles */}
       <style jsx>{`
         .modal-backdrop {
           background: rgba(0,0,0,0.6);
@@ -267,9 +266,34 @@ export default function DojoWebsite() {
   const [enviando, setEnviando] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [values, setValues] = useState<FormState>(initialForm);
+
   const formRef = useRef<HTMLFormElement | null>(null);
 
-  const isValid = useMemo(() => Object.keys(errors).length === 0 && !!values.nombre && !!values.apellido && !!values.email && !!values.disciplina, [errors, values]);
+  // reCAPTCHA
+  const recaptchaRef = useRef<any>(null);
+  const handleRecaptchaChange = useCallback((token: string | null) => {
+    setValues(prev => {
+      const next = { ...prev, recaptchaToken: token || "" };
+      setErrors(validate(next));
+      return next;
+    });
+  }, []);
+  const resetRecaptcha = useCallback(() => {
+    try { recaptchaRef.current?.reset?.(); } catch {}
+    setValues(prev => ({ ...prev, recaptchaToken: "" }));
+    setErrors(prev => { const { recaptcha, ...rest } = prev; return rest; });
+  }, []);
+
+  const isValid = useMemo(
+    () =>
+      Object.keys(errors).length === 0 &&
+      !!values.nombre &&
+      !!values.apellido &&
+      !!values.email &&
+      !!values.disciplina &&
+      !!values.recaptchaToken,
+    [errors, values]
+  );
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -300,9 +324,10 @@ export default function DojoWebsite() {
           telefono: values.telefono.trim(),
           disciplina: values.disciplina,
           mensaje: values.mensaje.trim(),
+          recaptchaToken: values.recaptchaToken,
         };
 
-        const res = await fetch('/api/contacto', {
+        const res = await fetch("/api/contacto", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
@@ -316,40 +341,38 @@ export default function DojoWebsite() {
             msg = parsed?.detail || parsed?.mensaje || msg;
           } catch {}
           setStatusMessage(`Error: ${msg}`);
+          resetRecaptcha();
           return;
         }
 
-        let data: any = {};
-        try {
-          data = raw ? JSON.parse(raw) : {};
-        } catch {}
-
-        setStatusMessage(`¡Gracias! 🥋 Recibimos tu consulta. Te contactaremos pronto para coordinar tu primera clase.`)
-
+        // OK
+        setStatusMessage("¡Gracias! 🥋 Recibimos tu consulta. Te contactaremos pronto para coordinar tu primera clase.");
         setValues(initialForm);
         setErrors({});
         formRef.current?.reset();
+        resetRecaptcha();
       } catch (err: any) {
         setStatusMessage(`Error: ${err?.message || "Fallo de red"}`);
+        resetRecaptcha();
       } finally {
         setEnviando(false);
       }
     },
-    [values]
+    [values, resetRecaptcha]
   );
 
-  /* ===== MODAL state + handler (añadido) ===== */
+  /* ===== MODAL state + handler ===== */
   const [openModal, setOpenModal] = useState<Disciplina | null>(null);
 
   const handleSelectDisciplina = (slug: Disciplina) => {
-    // Preseleccionar en el formulario (tu state controlado)
+    // Preseleccionar en el formulario (state controlado)
     setValues((prev) => {
       const next = { ...prev, disciplina: slug };
       setErrors(validate(next));
       return next;
     });
 
-    // Reflejar visualmente en el <select> por si hay lógica atada al change
+    // Forzar en el <select> y disparar change por si hay listeners
     const select = document.querySelector<HTMLSelectElement>('select[name="disciplina"]');
     if (select) {
       select.value = slug;
@@ -392,11 +415,11 @@ export default function DojoWebsite() {
               </Link>
             </div>
             <Button 
-  className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
-  onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
->
-  Únete Ahora
-</Button>
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Únete Ahora
+            </Button>
           </div>
         </div>
       </nav>
@@ -404,7 +427,7 @@ export default function DojoWebsite() {
       {/* Hero Section */}
       <section className="relative h-screen flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-gray-900/90 to-gray-900/70 z-10" />
-        <Image src="/images/hero/mural.jpeg" alt="Mural Samurái" fill className="object-cover" priority />
+        <Image src="/images/hero/mural.jpeg" alt="Mural Samurái" fill className="object-cover" priority sizes="100vw" />
         <div className="relative z-20 text-center max-w-4xl mx-auto px-4">
           <h1 className="text-6xl md:text-8xl font-black mb-6 text-white leading-tight">
             FORJA TU
@@ -414,22 +437,24 @@ export default function DojoWebsite() {
             Domina las artes marciales ancestrales en un entorno moderno. Disciplina, honor y fuerza te esperan.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
-  onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-> Inicia Tu Camino
-</Button>
-<Button 
-  size="lg" 
-  variant="outline" 
-  className="border-gray-400 text-gray-300 hover:bg-gray-800 font-bold px-8 py-4 text-lg transition-all duration-300 bg-transparent"
-  onClick={() => document.getElementById('disciplines')?.scrollIntoView({ behavior: 'smooth' })}
->
-  Ver Clases
-</Button>
+            <Button
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Inicia Tu Camino
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-gray-400 text-gray-300 hover:bg-gray-800 font-bold px-8 py-4 text-lg transition-all duration-300 bg-transparent"
+              onClick={() => document.getElementById('disciplines')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Ver Clases
+            </Button>
           </div>
         </div>
       </section>
-      
 
       {/* About Section */}
       <section id="about" className="py-20 bg-gray-800">
@@ -517,7 +542,7 @@ export default function DojoWebsite() {
           </div>
         </div>
 
-        {/* Render del Modal (añadido) */}
+        {/* Render del Modal */}
         {openModal && (
           <ModalDisciplina
             info={DISCIPLINAS_INFO[openModal]}
@@ -804,6 +829,31 @@ export default function DojoWebsite() {
                   />
                   {errors.mensaje && <p className="text-red-400 text-sm mt-1">{errors.mensaje}</p>}
                 </div>
+
+                {/* reCAPTCHA */}
+                <div className="bg-gray-700/30 p-6 rounded-xl border border-gray-600/50">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Shield className="h-5 w-5 text-blue-400" />
+                    <span className="text-white font-semibold">Verificación de Seguridad</span>
+                  </div>
+                  <div className="flex justify-center">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={RECAPTCHA_SITE_KEY}
+                      onChange={handleRecaptchaChange}
+                      onExpired={() => handleRecaptchaChange(null)}
+                      onErrored={() => handleRecaptchaChange(null)}
+                      theme="dark"
+                      size="normal"
+                    />
+                  </div>
+                  {errors.recaptcha && (
+                    <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
+                      <span>⚠️</span>{errors.recaptcha}
+                    </p>
+                  )}
+                </div>
+
                 <Button
                   type="submit"
                   disabled={enviando || !isValid}

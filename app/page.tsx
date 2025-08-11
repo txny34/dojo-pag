@@ -398,9 +398,8 @@ export default function DojoWebsite() {
     setOpenModal(null);
   };
     // Scroll a contacto y cerrar modal
-    document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
-    setOpenModal(null);
-  };
+    
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">

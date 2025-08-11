@@ -13,20 +13,21 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
-
-
-
-# Cargar .env.local
-load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Forzar carga del archivo .env o .env.local desde la raíz del proyecto
+ENV_FILE = BASE_DIR / ".env"  # o ".env.local" si ese es el que usas
+load_dotenv(ENV_FILE, override=False)
+
 SECRET_KEY = os.environ.get("SECRET_KEY", "fallback-key")
 DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 # reCAPTCHA
 RECAPTCHA_SECRET_KEY = os.environ.get("RECAPTCHA_SECRET_KEY")
+if not RECAPTCHA_SECRET_KEY:
+    raise RuntimeError(f"Falta RECAPTCHA_SECRET_KEY (leyendo {ENV_FILE})")
 
 
 

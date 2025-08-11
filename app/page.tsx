@@ -10,6 +10,7 @@ import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
 import dynamic from "next/dynamic";
 
+
 // ⛑️ reCAPTCHA dinámico (sin SSR)
 const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), { 
   ssr: false,
@@ -281,6 +282,7 @@ export default function DojoWebsite() {
 
   // reCAPTCHA
   const recaptchaRef = useRef<any>(null);
+
   const handleRecaptchaChange = useCallback((token: string | null) => {
     setValues(prev => {
       const next = { ...prev, recaptchaToken: token || "" };
@@ -857,7 +859,6 @@ export default function DojoWebsite() {
       <div className="flex justify-center">
         {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
           <ReCAPTCHA
-            ref={recaptchaRef}
             sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
             onChange={handleRecaptchaChange}
             onExpired={() => handleRecaptchaChange(null)}

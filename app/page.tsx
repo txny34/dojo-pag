@@ -1,6 +1,5 @@
 "use client";
-
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +11,14 @@ import StaticMap from "@/components/StaticMap";
 import dynamic from "next/dynamic";
 
 // ⛑️ reCAPTCHA dinámico (sin SSR)
-const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), { ssr: false });
+const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), { 
+  ssr: false,
+  loading: () => (
+    <div className="bg-gray-700 p-6 rounded-xl border border-gray-600 animate-pulse">
+      <div className="text-gray-400 text-center">Cargando verificación...</div>
+    </div>
+  )
+});
 
 // ======= CONFIG =======
 const API = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
@@ -266,6 +272,10 @@ export default function DojoWebsite() {
   const [enviando, setEnviando] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [values, setValues] = useState<FormState>(initialForm);
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const formRef = useRef<HTMLFormElement | null>(null);
 
@@ -373,12 +383,20 @@ export default function DojoWebsite() {
     });
 
     // Forzar en el <select> y disparar change por si hay listeners
-    const select = document.querySelector<HTMLSelectElement>('select[name="disciplina"]');
-    if (select) {
-      select.value = slug;
-      select.dispatchEvent(new Event("change", { bubbles: true }));
+    if (typeof window !== 'undefined') {
+      // Forzar en el <select>
+      const select = document.querySelector<HTMLSelectElement>('select[name="disciplina"]');
+      if (select) {
+        select.value = slug;
+        select.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+  
+      
     }
 
+  
+    setOpenModal(null);
+  };
     // Scroll a contacto y cerrar modal
     document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
     setOpenModal(null);
@@ -831,28 +849,37 @@ export default function DojoWebsite() {
                 </div>
 
                 {/* reCAPTCHA */}
-                <div className="bg-gray-700/30 p-6 rounded-xl border border-gray-600/50">
-                  <div className="flex items-center gap-3 mb-4">
-                    <Shield className="h-5 w-5 text-blue-400" />
-                    <span className="text-white font-semibold">Verificación de Seguridad</span>
-                  </div>
-                  <div className="flex justify-center">
-                    <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey={RECAPTCHA_SITE_KEY}
-                      onChange={handleRecaptchaChange}
-                      onExpired={() => handleRecaptchaChange(null)}
-                      onErrored={() => handleRecaptchaChange(null)}
-                      theme="dark"
-                      size="normal"
-                    />
-                  </div>
-                  {errors.recaptcha && (
-                    <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
-                      <span>⚠️</span>{errors.recaptcha}
-                    </p>
-                  )}
-                </div>
+                {isClient && (
+    <div className="bg-gray-700/30 p-6 rounded-xl border border-gray-600/50">
+      <div className="flex items-center gap-3 mb-4">
+        <Shield className="h-5 w-5 text-blue-400" />
+        <span className="text-white font-semibold">Verificación de Seguridad</span>
+      </div>
+      <div className="flex justify-center">
+        {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+            onChange={handleRecaptchaChange}
+            onExpired={() => handleRecaptchaChange(null)}
+            onErrored={() => handleRecaptchaChange(null)}
+            theme="dark"
+            size="normal"
+          />
+        ) : (
+          <div className="text-gray-500 text-sm text-center">
+            reCAPTCHA no configurado
+          </div>
+        )}
+      </div>
+      {errors.recaptcha && (
+        <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
+          <span>⚠️</span>{errors.recaptcha}
+        </p>
+      )}
+    </div>
+  )}
+
 
                 <Button
                   type="submit"

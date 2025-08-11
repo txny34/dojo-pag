@@ -373,7 +373,6 @@ export default function DojoWebsite() {
     [values, resetRecaptcha]
   );
 
-  /* ===== MODAL state + handler ===== */
   const [openModal, setOpenModal] = useState<Disciplina | null>(null);
 
   const handleSelectDisciplina = (slug: Disciplina) => {
@@ -383,23 +382,31 @@ export default function DojoWebsite() {
       setErrors(validate(next));
       return next;
     });
-
-    // Forzar en el <select> y disparar change por si hay listeners
-    if (typeof window !== 'undefined') {
-      // Forzar en el <select>
-      const select = document.querySelector<HTMLSelectElement>('select[name="disciplina"]');
-      if (select) {
-        select.value = slug;
-        select.dispatchEvent(new Event("change", { bubbles: true }));
-      }
   
-      
-    }
-
-  
+    // Cerrar modal PRIMERO
     setOpenModal(null);
+  
+    // Solo después de cerrar el modal, hacer el scroll y actualizar select
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        // Forzar en el <select>
+        const select = document.querySelector<HTMLSelectElement>('select[name="disciplina"]');
+        if (select) {
+          select.value = slug;
+          select.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+        
+        // Scroll hacia el formulario SOLO desde el modal
+        if (formRef.current) {
+          formRef.current.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start',
+            inline: 'nearest'
+          });
+        }
+      }
+    }, 300); // Tiempo suficiente para que se cierre el modal
   };
-    // Scroll a contacto y cerrar modal
     
 
 

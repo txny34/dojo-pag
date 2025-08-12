@@ -10,7 +10,6 @@ import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
 import dynamic from "next/dynamic";
 
-
 // ⛑️ reCAPTCHA dinámico (sin SSR)
 const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), { 
   ssr: false,
@@ -274,6 +273,7 @@ export default function DojoWebsite() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [values, setValues] = useState<FormState>(initialForm);
   const [isClient, setIsClient] = useState(false);
+  
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -290,10 +290,16 @@ export default function DojoWebsite() {
       return next;
     });
   }, []);
+
   const resetRecaptcha = useCallback(() => {
-    try { recaptchaRef.current?.reset?.(); } catch {}
+    try { 
+      recaptchaRef.current?.reset?.(); 
+    } catch {}
     setValues(prev => ({ ...prev, recaptchaToken: "" }));
-    setErrors(prev => { const { recaptcha, ...rest } = prev; return rest; });
+    setErrors(prev => { 
+      const { recaptcha, ...rest } = prev; 
+      return rest; 
+    });
   }, []);
 
   const isValid = useMemo(
@@ -319,6 +325,7 @@ export default function DojoWebsite() {
     []
   );
 
+  // ======= FUNCIÓN ORIGINAL DE DJANGO =======
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -373,6 +380,63 @@ export default function DojoWebsite() {
     [values, resetRecaptcha]
   );
 
+  // ======= NUEVA FUNCIÓN DE WHATSAPP =======
+  const handleWhatsAppSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      setStatusMessage("");
+      const currentErrors = validate(values);
+      setErrors(currentErrors);
+      if (Object.keys(currentErrors).length) return;
+
+      setEnviando(true);
+      try {
+        // Crear mensaje para WhatsApp con emojis
+        const mensaje = `🥊 *NUEVO CONTACTO - FIGHTING SPIRIT DOJO*
+
+👤 *Datos del interesado:*
+• Nombre: ${values.nombre} ${values.apellido}
+• Email: ${values.email}
+• Teléfono: ${values.telefono}
+• Disciplina: ${values.disciplina === 'k1' ? 'K-1 Kickboxing' : 
+               values.disciplina === 'muay-thai' ? 'Muay Thai' : 
+               values.disciplina === 'jiu-jitsu' ? 'Jiu-Jitsu' : 'Boxeo'}
+
+💬 *Mensaje:*
+${values.mensaje}
+
+---
+Enviado desde: ${window.location.href}`;
+
+        // Número del dueño del gym (CAMBIA ESTE NÚMERO)
+        const numeroWhatsApp = '598095964015'; // Formato: código país + número
+        
+        // URL de WhatsApp
+        const whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
+        
+        // Abrir WhatsApp en nueva ventana
+        window.open(whatsappUrl, '_blank');
+        
+        // Mensaje de éxito y reset del form
+        setStatusMessage("¡Perfecto! Se abrirá WhatsApp para enviar tu consulta 📱");
+        
+        // Reset formulario
+        setValues(initialForm);
+        setErrors({});
+        formRef.current?.reset();
+        resetRecaptcha();
+
+      } catch (err: any) {
+        setStatusMessage(`Error: ${err?.message || "Fallo de red"}`);
+        resetRecaptcha();
+      } finally {
+        setEnviando(false);
+      }
+    },
+    [values, resetRecaptcha]
+  );
+
+  // ======= MODAL STATE + HANDLERS =======
   const [openModal, setOpenModal] = useState<Disciplina | null>(null);
 
   const handleSelectDisciplina = (slug: Disciplina) => {
@@ -407,8 +471,6 @@ export default function DojoWebsite() {
       }
     }, 300); // Tiempo suficiente para que se cierre el modal
   };
-    
-
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -771,7 +833,7 @@ export default function DojoWebsite() {
 
             <div className="bg-gray-800 rounded-lg p-8">
               <h3 className="text-2xl font-bold text-white mb-6">Inicia Tu Camino</h3>
-              <form ref={formRef} className="space-y-4" onSubmit={handleSubmit} noValidate>
+              <form ref={formRef} className="space-y-4" onSubmit={handleWhatsAppSubmit} noValidate>
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <input
@@ -858,35 +920,34 @@ export default function DojoWebsite() {
 
                 {/* reCAPTCHA */}
                 {isClient && (
-    <div className="bg-gray-700/30 p-6 rounded-xl border border-gray-600/50">
-      <div className="flex items-center gap-3 mb-4">
-        <Shield className="h-5 w-5 text-blue-400" />
-        <span className="text-white font-semibold">Verificación de Seguridad</span>
-      </div>
-      <div className="flex justify-center">
-        {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
-          <ReCAPTCHA
-            sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
-            onChange={handleRecaptchaChange}
-            onExpired={() => handleRecaptchaChange(null)}
-            onErrored={() => handleRecaptchaChange(null)}
-            theme="dark"
-            size="normal"
-          />
-        ) : (
-          <div className="text-gray-500 text-sm text-center">
-            reCAPTCHA no configurado
-          </div>
-        )}
-      </div>
-      {errors.recaptcha && (
-        <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
-          <span>⚠️</span>{errors.recaptcha}
-        </p>
-      )}
-    </div>
-  )}
-
+                  <div className="bg-gray-700/30 p-6 rounded-xl border border-gray-600/50">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Shield className="h-5 w-5 text-blue-400" />
+                      <span className="text-white font-semibold">Verificación de Seguridad</span>
+                    </div>
+                    <div className="flex justify-center">
+                      {process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ? (
+                        <ReCAPTCHA
+                          sitekey={process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY}
+                          onChange={handleRecaptchaChange}
+                          onExpired={() => handleRecaptchaChange(null)}
+                          onErrored={() => handleRecaptchaChange(null)}
+                          theme="dark"
+                          size="normal"
+                        />
+                      ) : (
+                        <div className="text-gray-500 text-sm text-center">
+                          reCAPTCHA no configurado
+                        </div>
+                      )}
+                    </div>
+                    {errors.recaptcha && (
+                      <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
+                        <span>⚠️</span>{errors.recaptcha}
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 <Button
                   type="submit"

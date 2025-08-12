@@ -13,6 +13,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+DEBUG = os.getenv("DJANGO_DEBUG", "True").lower() == "true"
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY and not DEBUG:
+    raise RuntimeError("Falta DJANGO_SECRET_KEY")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,13 +44,23 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-+!k$$2l1^*%cfjit4t(4ne)&ndzg_s!&h!mlli@=3ukm^c9vgp'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["localhost",
+    "127.0.0.1",
+    "imperial-thumbnail-normal-poland.trycloudflare.com",
+    ".trycloudflare.com", ]
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+# Cookies en dev: NO secure
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE   = False
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE   = "Lax"
 
 # Application definition
 
@@ -57,7 +71,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
     'rest_framework',
     'corsheaders',
     'contactos',
@@ -149,7 +162,9 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
-CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000", "https://imperial-thumbnail-normal-poland.trycloudflare.com",
+    "https://*.trycloudflare.com",
+    "https://dojo-pag.vercel.app",]
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [],  # sin sesión = sin CSRF para dev

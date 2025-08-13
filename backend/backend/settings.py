@@ -3,6 +3,12 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 import dj_database_url
+import os
+
+# Al final del archivo settings.py
+if os.environ.get('MIGRATE_ON_DEPLOY') == '1':
+    import subprocess
+    subprocess.run(['python', 'manage.py', 'migrate'], check=True)
 
 # --- Paths / .env (útil en local) ---
 BASE_DIR = Path(__file__).resolve().parent.parent

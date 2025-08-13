@@ -1,109 +1,98 @@
-// app/api/contacto/route.js - Versión que envía a AMBOS
-import { supabaseAdmin } from '@/lib/supabaseServer'; 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
+import { supabaseAdmin } from '@/lib/supabaseServer';
+
+// --- Utils ---
+const DISC_MAP = { 'Muay Thai': 'muay-thai', 'Boxeo': 'boxeo', 'K-1': 'k1', 'Jiu-Jitsu': 'jiu-jitsu' };
+
+function sanitizeEnv(v) { return (v || '').trim().replace(/^"+|"+$/g, '').replace(/\/+$/, ''); }
+function backendBase() {
+  const v = sanitizeEnv(process.env.BACKEND_URL);
+  if (!v) throw new Error('Missing ENV: BACKEND_URL');
+  return v;
+}
 
 async function parseBody(req) {
-  // JSON
-  if (req.headers.get('content-type')?.includes('application/json')) {
-    try { return await req.json(); } catch {}
-  }
-  // FormData
-  try {
-    const fd = await req.formData();
-    const o = {}; for (const [k,v] of fd.entries()) o[k] = v;
-    return o;
-  } catch {}
+  const ct = req.headers.get('content-type') || '';
+  if (ct.includes('application/json')) { try { return await req.json(); } catch {} }
+  try { const fd = await req.formData(); const o = {}; for (const [k,v] of fd.entries()) o[k]=v; return o; } catch {}
   return {};
+}
+
+function normalizePhone(tel) {
+  if (!tel) return '';
+  const digits = String(tel).replace(/\D/g, '');
+  return (digits.length >= 8 && digits.length <= 15) ? digits : '';
+}
+
+async function verifyRecaptcha(token) {
+  const secret = process.env.RECAPTCHA_SECRET_KEY;
+  if (!token || !secret) return true;
+  const params = new URLSearchParams({ secret, response: token });
+  const r = await fetch('https://www.google.com/recaptcha/api/siteverify', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: params });
+  const j = await r.json().catch(()=> ({}));
+  return j.success === true && (j.score === undefined || j.score >= 0.5);
+}
+
+async function ping(url) {
+  try {
+    const r = await fetch(`${url}/admin/login/`, { method: 'HEAD', cache: 'no-store' });
+    return r.status; // 302 esperado
+  } catch (e) {
+    return 0; // no conecta
+  }
+}
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: {
+    'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type',
+  }});
 }
 
 export async function POST(req) {
   const raw = await parseBody(req);
-  console.log('CT:', req.headers.get('content-type'));
-  console.log('RAW BODY ->', raw);
 
-  const nombre = raw?.nombre ?? 'Alumno';
-  const apellido = raw?.apellido ?? '';
-  const disciplina = raw?.disciplina ?? 'nuestra disciplina';
-  const telefono = raw?.telefono ?? '';
-  const email = raw?.email ?? '';
-  const mensaje = raw?.mensaje ?? '';
+  // Normalización para Django
+  const nombre = String(raw?.nombre || 'Alumno').trim();
+  const apellido = (raw?.apellido && String(raw.apellido).trim()) || '—';
+  const email = String(raw?.email || '').trim();
+  const telefono = normalizePhone(raw?.telefono);
+  const disciplina = (() => { const v = String(raw?.disciplina || '').trim(); return DISC_MAP[v] || v; })();
+  const mensaje = String(raw?.mensaje || '').trim();
+  const token = raw?.token;
 
-  const texto = `¡Hola ${nombre}! 🥋 Recibimos tu interés en ${disciplina}. ` +
-                `Te contactaremos pronto para coordinar tu primera clase.`;
+  // reCAPTCHA laxo
+  const captchaOK = await verifyRecaptcha(token);
+  if (!captchaOK) return Response.json({ ok:false, error:'reCAPTCHA failed' }, { status:400 });
 
-  let djangoSuccess = false;
-  let supabaseSuccess = false;
-  const errors = [];
+  const base = backendBase();
+  const health = await ping(base);
 
-  // 1. ENVIAR A DJANGO
+  const status = { django: 'failed', supabase: 'failed', errors: [], debug: { backend_url: base, pingStatus: health } };
+
+  // 1) Django
   try {
-    const djangoPayload = {
-      nombre,
-      apellido,
-      email,
-      telefono,
-      disciplina,
-      mensaje
-    };
-
-    const djangoResponse = await fetch('http://127.0.0.1:8000/contactos/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(djangoPayload),
+    const url = `${base}/contactos/`;
+    const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' },
+      body: JSON.stringify({ nombre, apellido, email, telefono, disciplina, mensaje }),
     });
-
-    if (djangoResponse.ok) {
-      djangoSuccess = true;
-      console.log('✅ Enviado a Django exitosamente');
-    } else {
-      const errorText = await djangoResponse.text();
-      errors.push(`Django: ${errorText}`);
-      console.log('❌ Error enviando a Django:', errorText);
-    }
-  } catch (error) {
-    errors.push(`Django connection: ${error.message}`);
-    console.log('❌ Error conectando con Django:', error.message);
+    if (r.ok) status.django = 'success';
+    else status.errors.push(`Django: ${r.status} ${await r.text()}`);
+  } catch (e) {
+    status.errors.push(`Django connection: ${e?.message || 'fetch failed'}`);
   }
 
-  // 2. ENVIAR A SUPABASE
+  // 2) Supabase (si hay env)
   try {
-    const { error } = await supabaseAdmin.from('contacto').insert([{ 
-      nombre, 
-      apellido,
-      email, 
-      telefono, 
-      disciplina,
-      mensaje 
-    }]);
-    
-    if (error) {
-      errors.push(`Supabase: ${error.message}`);
-      console.log('❌ Error Supabase:', error.message);
-    } else {
-      supabaseSuccess = true;
-      console.log('✅ Enviado a Supabase exitosamente');
+    if (supabaseAdmin) {
+      const { error } = await supabaseAdmin.from('contacto')
+        .insert([{ nombre, apellido, email, telefono, disciplina, mensaje }]);
+      if (error) status.errors.push(`Supabase: ${error.message}`); else status.supabase = 'success';
     }
-  } catch (error) {
-    errors.push(`Supabase: ${error.message}`);
-    console.log('❌ Error Supabase:', error.message);
-  }
+  } catch (e) { status.errors.push(`Supabase: ${e?.message}`); }
 
-  // 3. RESPUESTA
-  if (djangoSuccess || supabaseSuccess) {
-    return Response.json({ 
-      echo: raw, 
-      message: texto,
-      status: {
-        django: djangoSuccess ? 'success' : 'failed',
-        supabase: supabaseSuccess ? 'success' : 'failed',
-        errors: errors.length > 0 ? errors : null
-      }
-    }, { status: 200 });
-  } else {
-    return Response.json({ 
-      error: 'Failed to save to both systems',
-      errors 
-    }, { status: 500 });
-  }
+  const ok = status.django === 'success' || status.supabase === 'success';
+  const texto = `¡Hola ${nombre}! 🥋 Recibimos tu interés en ${disciplina}. Te contactaremos pronto para coordinar tu primera clase.`;
+  return Response.json({ ok, echo: raw, message: texto, status }, { status: ok ? 200 : 500 });
 }

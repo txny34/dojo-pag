@@ -264,6 +264,275 @@ function ModalDisciplina({
   );
 }
 
+/* =========================================================================================
+   PLANES DE MEMBRESÍA: contenido extendido + MODAL
+========================================================================================= */
+type PlanSlug = "guerrero" | "samurai" | "shogun";
+
+type PlanInfo = {
+  slug: PlanSlug;
+  name: string;
+  price: string;
+  period: string;
+  tagline: string;
+  description: string;
+  features: string[];
+  extendedFeatures: string[];
+  ideal: string;
+  benefits: string[];
+  popular: boolean;
+  color: string;
+};
+
+const PLANES_INFO: Record<PlanSlug, PlanInfo> = {
+  guerrero: {
+    slug: "guerrero",
+    name: "Guerrero",
+    price: "$99",
+    period: "/mes",
+    tagline: "Perfecto para comenzar tu viaje",
+    description:
+      "Ideal para principiantes que buscan introducirse al mundo de las artes marciales con acceso completo a todas nuestras disciplinas.",
+    features: [
+      "Clases grupales ilimitadas",
+      "Acceso a todas las disciplinas",
+      "Acceso a vestuarios",
+      "Uso básico de equipo"
+    ],
+    extendedFeatures: [
+      "Hasta 5 clases por semana",
+      "Acceso a duchas y casilleros temporales",
+      "Kit de bienvenida con camiseta del dojo",
+      "Evaluación inicial gratuita",
+      "Acceso a eventos comunitarios"
+    ],
+    ideal: "Principiantes y estudiantes",
+    benefits: [
+      "Rutina estructurada",
+      "Comunidad de apoyo",
+      "Flexibilidad de horarios",
+      "Base sólida en fundamentos"
+    ],
+    popular: false,
+    color: "gray"
+  },
+  samurai: {
+    slug: "samurai",
+    name: "Samurái",
+    price: "$149",
+    period: "/mes",
+    tagline: "El equilibrio perfecto",
+    description:
+      "Para practicantes serios que buscan acelerar su progreso con entrenamiento personalizado y beneficios premium.",
+    features: [
+      "Todo lo del plan Guerrero",
+      "2 sesiones de entrenamiento personal",
+      "Reserva prioritaria de clases",
+      "Consulta nutricional",
+      "Acceso al equipo de competición"
+    ],
+    extendedFeatures: [
+      "Clases grupales ilimitadas",
+      "Plan de entrenamiento personalizado",
+      "Seguimiento de progreso mensual",
+      "Acceso a seminarios especiales",
+      "Descuentos en merchandise del dojo",
+      "Casillero semi-permanente"
+    ],
+    ideal: "Practicantes regulares y atletas amateur",
+    benefits: [
+      "Progreso acelerado",
+      "Atención personalizada",
+      "Nutrición optimizada",
+      "Preparación para competencias"
+    ],
+    popular: true,
+    color: "blue"
+  },
+  shogun: {
+    slug: "shogun",
+    name: "Shogun",
+    price: "$199",
+    period: "/mes",
+    tagline: "La experiencia definitiva",
+    description:
+      "Para guerreros élite que buscan la máxima dedicación, entrenamiento personal ilimitado y acceso exclusivo a todas las facilidades.",
+    features: [
+      "Todo lo del plan Samurái",
+      "Entrenamiento personal ilimitado",
+      "Casillero privado",
+      "Pases de invitado (2/mes)",
+      "Seminarios exclusivos"
+    ],
+    extendedFeatures: [
+      "Acceso 24/7 al dojo",
+      "Sesiones de sparring privadas",
+      "Plan nutricional completo",
+      "Masajes de recuperación mensuales",
+      "Acceso VIP a eventos",
+      "Equipo personalizado incluido",
+      "Línea directa con instructores"
+    ],
+    ideal: "Competidores profesionales y entusiastas serios",
+    benefits: [
+      "Máximo rendimiento",
+      "Recuperación optimizada",
+      "Acceso exclusivo",
+      "Preparación profesional"
+    ],
+    popular: false,
+    color: "gold"
+  }
+};
+
+function ModalPlan({
+  info,
+  onClose,
+  onSelect,
+}: {
+  info: PlanInfo;
+  onClose: () => void;
+  onSelect: (slug: PlanSlug) => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+      <div className="bg-gray-900 text-gray-100 w-full max-w-3xl rounded-2xl overflow-hidden shadow-2xl modal-card max-h-[90vh] overflow-y-auto">
+        {/* Header con precio destacado */}
+        <div
+          className={`relative bg-gradient-to-br ${
+            info.color === "blue"
+              ? "from-blue-900 to-blue-800"
+              : info.color === "gold"
+              ? "from-yellow-900 to-yellow-800"
+              : "from-gray-800 to-gray-700"
+          } p-8`}
+        >
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 bg-white/80 hover:bg-white text-gray-900 rounded-full px-3 py-1 text-sm font-bold"
+            aria-label="Cerrar modal"
+          >
+            ✕
+          </button>
+
+          <div className="text-center">
+            {info.popular && (
+              <div className="inline-block bg-blue-400 text-gray-900 px-4 py-1 rounded-full text-sm font-bold mb-4">
+                MÁS POPULAR
+              </div>
+            )}
+            <h2 className="text-4xl font-black mb-2">{info.name}</h2>
+            <p className="text-gray-300 mb-4">{info.tagline}</p>
+            <div className="text-center mb-4">
+              <span
+                className={`text-6xl font-black ${
+                  info.color === "blue"
+                    ? "text-blue-400"
+                    : info.color === "gold"
+                    ? "text-yellow-400"
+                    : "text-gray-300"
+                }`}
+              >
+                {info.price}
+              </span>
+              <span className="text-gray-300 text-xl">{info.period}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Contenido */}
+        <div className="p-8">
+          <p className="text-gray-300 text-lg leading-relaxed mb-6">{info.description}</p>
+
+          {/* Ideal para */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-2 flex items-center gap-2">
+              <Target className="w-5 h-5 text-blue-400" /> Ideal para
+            </h3>
+            <p className="text-gray-300">{info.ideal}</p>
+          </div>
+
+          {/* Características incluidas */}
+          <div className="mb-6">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-blue-400" /> Características incluidas
+            </h3>
+            <div className="grid md:grid-cols-2 gap-3">
+              {info.extendedFeatures.map((feature, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span
+                    className={`mt-1.5 w-2 h-2 rounded-full ${
+                      info.color === "blue"
+                        ? "bg-blue-400"
+                        : info.color === "gold"
+                        ? "bg-yellow-400"
+                        : "bg-gray-400"
+                    } flex-shrink-0`}
+                  ></span>
+                  <span className="text-gray-300">{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Beneficios */}
+          <div className="mb-8">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <Award className="w-5 h-5 text-blue-400" /> Beneficios clave
+            </h3>
+            <div className="grid grid-cols-2 gap-3">
+              {info.benefits.map((benefit, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-blue-400" />
+                  <span className="text-gray-300">{benefit}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <Button
+            className={`w-full font-bold text-lg py-4 ${
+              info.color === "blue"
+                ? "bg-blue-600 hover:bg-blue-700"
+                : info.color === "gold"
+                ? "bg-yellow-600 hover:bg-yellow-700"
+                : "bg-gray-600 hover:bg-gray-700"
+            } text-white`}
+            onClick={() => onSelect(info.slug)}
+          >
+            Quiero el plan {info.name} 🥋
+          </Button>
+
+          <p className="text-center text-gray-400 text-sm mt-4">
+            Sin compromisos a largo plazo • Cancela cuando quieras
+          </p>
+        </div>
+      </div>
+
+      {/* Fade styles */}
+      <style jsx>{`
+        .modal-backdrop {
+          background: rgba(0,0,0,0.6);
+          animation: fadeIn 220ms ease-out forwards;
+          opacity: 0;
+        }
+        .modal-card {
+          transform: translateY(8px) scale(0.98);
+          opacity: 0;
+          animation: riseIn 220ms ease-out forwards;
+        }
+        @keyframes fadeIn {
+          to { opacity: 1; }
+        }
+        @keyframes riseIn {
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+      `}</style>
+    </div>
+  );
+}
+
 /* ========================================================================================= */
 
 export default function DojoWebsite() {
@@ -436,7 +705,7 @@ Enviado desde: ${window.location.href}`;
     [values, resetRecaptcha]
   );
 
-  // ======= MODAL STATE + HANDLERS =======
+  // ======= MODAL STATE + HANDLERS (DISCIPLINAS) =======
   const [openModal, setOpenModal] = useState<Disciplina | null>(null);
 
   const handleSelectDisciplina = (slug: Disciplina) => {
@@ -470,6 +739,39 @@ Enviado desde: ${window.location.href}`;
         }
       }
     }, 300); // Tiempo suficiente para que se cierre el modal
+  };
+
+  // ======= MODAL STATE + HANDLERS (PLANES) =======
+  const [openPlanModal, setOpenPlanModal] = useState<PlanSlug | null>(null);
+
+  const handleSelectPlan = (slug: PlanSlug) => {
+    // Agregar el plan seleccionado al mensaje del formulario
+    const planName = PLANES_INFO[slug].name;
+    const planPrice = PLANES_INFO[slug].price + PLANES_INFO[slug].period;
+    
+    setValues((prev) => {
+      const mensajeConPlan = `Hola! Estoy interesado en el plan ${planName} (${planPrice}). ${prev.mensaje}`.trim();
+      const next = { 
+        ...prev, 
+        mensaje: mensajeConPlan
+      };
+      setErrors(validate(next));
+      return next;
+    });
+
+    // Cerrar modal PRIMERO
+    setOpenPlanModal(null);
+
+    // Scroll hacia el formulario después de cerrar el modal
+    setTimeout(() => {
+      if (formRef.current) {
+        formRef.current.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        });
+      }
+    }, 300);
   };
 
   return (
@@ -630,7 +932,7 @@ Enviado desde: ${window.location.href}`;
           </div>
         </div>
 
-        {/* Render del Modal */}
+        {/* Render del Modal (Disciplinas) */}
         {openModal && (
           <ModalDisciplina
             info={DISCIPLINAS_INFO[openModal]}
@@ -765,13 +1067,32 @@ Enviado desde: ${window.location.href}`;
                       </li>
                     ))}
                   </ul>
-                  <Button className={`w-full font-bold ${plan.popular ? "bg-blue-400 hover:bg-blue-500 text-gray-900" : "bg-blue-600 hover:bg-blue-700 text-white"}`}>
+                  {/* Botón: abre modal de plan correcto */}
+                  <Button
+                    className={`w-full font-bold ${plan.popular ? "bg-blue-400 hover:bg-blue-500 text-gray-900" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                    onClick={() => {
+                      const slug: PlanSlug =
+                        plan.name.toLowerCase() === "guerrero" ? "guerrero" :
+                        plan.name.toLowerCase() === "samurái" ? "samurai" :
+                        "shogun";
+                      setOpenPlanModal(slug);
+                    }}
+                  >
                     Elegir Plan
                   </Button>
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* Render del Modal de Plan */}
+          {openPlanModal && (
+            <ModalPlan
+              info={PLANES_INFO[openPlanModal]}
+              onClose={() => setOpenPlanModal(null)}
+              onSelect={handleSelectPlan}
+            />
+          )}
         </div>
       </section>
 

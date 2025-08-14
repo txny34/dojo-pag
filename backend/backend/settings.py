@@ -8,25 +8,21 @@ import dj_database_url
 # Al final del archivo settings.py
 
 
-# --- Paths / .env (útil en local) ---
 BASE_DIR = Path(__file__).resolve().parent.parent
-load_dotenv(BASE_DIR / ".env", override=True)
 
-# --- Entorno / Seguridad ---
+# Cargar .env local si existe (no pisa variables del entorno del server)
+load_dotenv(BASE_DIR / ".env", override=False)
+
+# TOMAR SIEMPRE DE ENV (acepta dos nombres por compatibilidad)
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY") or os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("Falta DJANGO_SECRET_KEY (o SECRET_KEY)")
+
+# DEBUG desde env (por defecto False en server)
 DEBUG = os.getenv("DJANGO_DEBUG", "False").lower() == "true"
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
-if not SECRET_KEY:
-    if DEBUG:
-        SECRET_KEY = "dev-insecure-key-no-usar-en-prod"
-    else:
-        raise RuntimeError("Falta DJANGO_SECRET_KEY")
-
-# Railway te da subdominio *.up.railway.app
-ALLOWED_HOSTS = os.getenv(
-    "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,.up.railway.app,.railway.app"
-).split(",")
+# Allowed hosts (Railway + local)
+ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,.up.railway.app").split(",")
 
 # Si validás reCAPTCHA en Django, poné la env; si no, queda vacío y no molesta
 RECAPTCHA_SECRET_KEY = os.getenv("RECAPTCHA_SECRET_KEY", "")

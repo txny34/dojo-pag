@@ -70,13 +70,15 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = "backend.wsgi.application"
 
-# --- Base de datos (Railway → DATABASE_URL) ---
+# --- Base de datos (Render/Railway → DATABASE_URL) ---
+_db_url = os.getenv("DATABASE_URL", "").strip()
 DATABASES = {
-    "default": dj_database_url.config(
-        env="DATABASE_URL",
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
-        conn_max_age=600,
-    )
+    "default": dj_database_url.parse(_db_url, conn_max_age=600)
+    if _db_url
+    else {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
+    }
 }
 
 # --- i18n ---

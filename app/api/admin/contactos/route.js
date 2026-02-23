@@ -26,7 +26,7 @@ export async function GET(req) {
 
   try {
     const base = backendBase();
-    const r = await fetch(`${base}/contactos/`, { cache: 'no-store' });
+    const r = await fetch(`${base}/contactos/`, { cache: 'no-store', signal: AbortSignal.timeout(25000) });
     const data = await r.json();
     return Response.json(data, { status: r.status });
   } catch (e) {

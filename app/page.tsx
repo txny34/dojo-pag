@@ -66,7 +66,8 @@ function validate(values: FormState) {
   if (telefono && !soloNumeros(telefono.trim())) e.telefono = "Solo números.";
   if (!disciplinasOK.has(disciplina)) e.disciplina = "Elegí una disciplina.";
   if (mensaje.trim().length > 500) e.mensaje = "Máximo 500 caracteres.";
-  if (!recaptchaToken) e.recaptcha = "Completa la verificación reCAPTCHA.";
+  const recaptchaRequerido = !!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  if (recaptchaRequerido && !recaptchaToken) e.recaptcha = "Completa la verificación reCAPTCHA.";
 
   return e;
 }
@@ -410,7 +411,7 @@ export default function DojoWebsite() {
       !!values.apellido &&
       !!values.email &&
       !!values.disciplina &&
-      !!values.recaptchaToken,
+      (!process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || !!values.recaptchaToken),
     [errors, values]
   );
 

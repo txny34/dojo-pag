@@ -110,12 +110,11 @@ CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SAMESITE = "Lax"
 
-# --- DRF: abierto pero con rate limiting para evitar spam ---
+# --- DRF: abierto, sin throttle global (el throttle de creación va en el ViewSet) ---
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": [],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
-    "DEFAULT_THROTTLE_CLASSES": ["rest_framework.throttling.AnonRateThrottle"],
-    "DEFAULT_THROTTLE_RATES": {"anon": "5/hour"},
+    "DEFAULT_THROTTLE_RATES": {"contacto_create": "5/hour"},
 }
 
 # --- Logging básico a consola (útil en Railway) ---

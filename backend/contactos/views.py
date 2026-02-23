@@ -1,12 +1,23 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from rest_framework.throttling import AnonRateThrottle
 from .models import Contacto
 from .serializers import ContactoSerializer
 from .utils.recaptcha import verify_recaptcha  # ← ruta relativa dentro de la app
 
+
+class ContactoCreateThrottle(AnonRateThrottle):
+    scope = "contacto_create"
+
+
 class ContactoViewSet(viewsets.ModelViewSet):
     queryset = Contacto.objects.all().order_by("-fecha_envio")
     serializer_class = ContactoSerializer
+
+    def get_throttles(self):
+        if self.action == "create":
+            return [ContactoCreateThrottle()]
+        return []
 
     def create(self, request, *args, **kwargs):
         # 1) Leer token del body (JSON del front)

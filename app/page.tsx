@@ -513,6 +513,21 @@ ${values.mensaje}
 ---
 Enviado desde: ${window.location.href}`;
 
+        // Guardar en Django en paralelo (sin bloquear WhatsApp)
+        fetch("/api/contacto", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre: values.nombre.trim(),
+            apellido: values.apellido.trim(),
+            email: values.email.trim(),
+            telefono: values.telefono.trim(),
+            disciplina: values.disciplina,
+            mensaje: values.mensaje.trim(),
+            recaptchaToken: values.recaptchaToken,
+          }),
+        }).catch(() => {}); // silencioso — WhatsApp funciona igual si Django falla
+
         const numeroWhatsApp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "598095964015";
         const whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
 

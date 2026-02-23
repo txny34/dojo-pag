@@ -29,26 +29,30 @@ export default function AdminPage() {
   const [error, setError] = useState("");
   const [updating, setUpdating] = useState<number | null>(null);
 
+  const backendUrl = process.env.NEXT_PUBLIC_API_BASE ?? "";
+
   async function fetchContactos(pwd: string) {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/admin/contactos", {
+      // 1) Verificar contraseña (llamada rápida a Vercel, sin tocar Django)
+      const auth = await fetch("/api/admin/verify", {
         headers: { "x-admin-password": pwd },
-        cache: "no-store",
       });
-      if (res.status === 401) {
+      if (auth.status === 401) {
         setError("Contraseña incorrecta.");
         setLoading(false);
         return;
       }
+
+      // 2) Traer contactos directo desde Django (el browser llama a Render)
+      const res = await fetch(`${backendUrl}/contactos/`, { cache: "no-store" });
       if (!res.ok) {
         setError("Error al cargar contactos. ¿Está el backend corriendo?");
         setLoading(false);
         return;
       }
       const data = await res.json();
-      // DRF puede devolver array directo o { results: [...] }
       setContactos(Array.isArray(data) ? data : data.results ?? []);
       setAuthed(true);
     } catch {
@@ -61,13 +65,10 @@ export default function AdminPage() {
   async function toggleContactado(id: number, current: boolean) {
     setUpdating(id);
     try {
-      const res = await fetch("/api/admin/contactos", {
+      const res = await fetch(`${backendUrl}/contactos/${id}/`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          "x-admin-password": password,
-        },
-        body: JSON.stringify({ id, contactado: !current }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactado: !current }),
       });
       if (res.ok) {
         setContactos((prev) =>

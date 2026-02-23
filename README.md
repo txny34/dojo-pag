@@ -15,8 +15,8 @@ Sitio web completo para un gimnasio de artes marciales. Landing page profesional
 | Frontend | Next.js 15 · React 18 · TypeScript |
 | Estilos | Tailwind CSS · Shadcn/ui · Radix UI |
 | Backend | Django 5.2 · Django REST Framework |
-| Base de datos | PostgreSQL (Railway) · SQLite (dev) |
-| Deploy | Vercel (frontend) · Railway (backend) |
+| Base de datos | PostgreSQL ( Render) · SQLite (dev) |
+| Deploy | Vercel (frontend) · Render (backend) |
 | Extras | reCAPTCHA v2 · WhatsApp API · OpenStreetMap |
 
 ---

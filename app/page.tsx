@@ -4,26 +4,30 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Phone, Mail, Clock, Users, Award, Zap, Shield, Target, Swords } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Users, Award, Zap, Shield, Target, Swords, Menu, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
 import dynamic from "next/dynamic";
 
+import { DISCIPLINAS_INFO, type DisciplinaInfo } from "@/lib/data/disciplinas";
+import { PLANES_INFO, type PlanSlug, type PlanInfo } from "@/lib/data/planes";
+import { HORARIOS } from "@/lib/data/horarios";
+import { INSTRUCTORES } from "@/lib/data/instructores";
+
 // ⛑️ reCAPTCHA dinámico (sin SSR)
-const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), { 
+const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), {
   ssr: false,
   loading: () => (
     <div className="bg-gray-700 p-6 rounded-xl border border-gray-600 animate-pulse">
       <div className="text-gray-400 text-center">Cargando verificación...</div>
     </div>
-  )
+  ),
 });
 
 // ======= CONFIG =======
 const API = process.env.NEXT_PUBLIC_API_BASE ?? "http://127.0.0.1:8000";
 const DISCIPLINAS = ["boxeo", "muay-thai", "k1", "jiu-jitsu"] as const;
-const RECAPTCHA_SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
 
 type Disciplina = typeof DISCIPLINAS[number];
 
@@ -44,7 +48,7 @@ const initialForm: FormState = {
   telefono: "",
   disciplina: "",
   mensaje: "",
-  recaptchaToken: ""
+  recaptchaToken: "",
 };
 
 // ======= HELPERS =======
@@ -67,89 +71,6 @@ function validate(values: FormState) {
   return e;
 }
 
-/* =========================================================================================
-   DISCIPLINAS: contenido extendido + MODAL
-========================================================================================= */
-type Nivel = "Principiante" | "Intermedio" | "Avanzado";
-
-type DisciplinaInfo = {
-  slug: Disciplina;
-  title: string;
-  descripcion: string;
-  beneficios: string[];
-  niveles: Nivel[];
-  duracion: string;
-  equipamiento: string[];
-  imagen: string;
-};
-
-const DISCIPLINAS_INFO: Record<Disciplina, DisciplinaInfo> = {
-  k1: {
-    slug: "k1",
-    title: "K-1 Kickboxing",
-    descripcion: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos.",
-    beneficios: [
-      "Quema de calorías acelerada",
-      "Mejora el cardio y la potencia",
-      "Reflejos y timing",
-      "Técnica de golpeo completa",
-      "Gestión del estrés"
-    ],
-    niveles: ["Principiante", "Intermedio", "Avanzado"],
-    duracion: "60 min",
-    equipamiento: ["Guantes", "Vendas", "Protector bucal (sparring)", "Tibiales"],
-    imagen: "/images/disciplines/kickBoxing.jpeg",
-  },
-  "muay-thai": {
-    slug: "muay-thai",
-    title: "Muay Thai",
-    descripcion: "El arte de las 8 extremidades: puños, codos, rodillas y espinillas.",
-    beneficios: [
-      "Potencia y técnica en clinch",
-      "Condición física total",
-      "Confianza y disciplina",
-      "Movilidad y equilibrio",
-      "Resistencia mental"
-    ],
-    niveles: ["Principiante", "Intermedio", "Avanzado"],
-    duracion: "60 min",
-    equipamiento: ["Guantes", "Vendas", "Tibiales", "Protector bucal (sparring)"],
-    imagen: "/images/disciplines/muyThai.jpeg",
-  },
-  boxeo: {
-    slug: "boxeo",
-    title: "Boxeo",
-    descripcion: "La dulce ciencia: guardia, desplazamientos, combinaciones y defensa.",
-    beneficios: [
-      "Mejora cardiovascular",
-      "Coordinación y precisión",
-      "Fortaleza de tren superior",
-      "Técnica y defensa",
-      "Reducción del estrés"
-    ],
-    niveles: ["Principiante", "Intermedio", "Avanzado"],
-    duracion: "60 min",
-    equipamiento: ["Guantes", "Vendas", "Protector bucal (sparring)"],
-    imagen: "/images/disciplines/boxeo.jpeg",
-  },
-  "jiu-jitsu": {
-    slug: "jiu-jitsu",
-    title: "Jiu-Jitsu",
-    descripcion: "Lucha en suelo, control y sumisiones. Defensa personal real.",
-    beneficios: [
-      "Confianza y autocontrol",
-      "Flexibilidad y movilidad",
-      "Fuerza del core",
-      "Estrategia y paciencia",
-      "Comunidad y respeto"
-    ],
-    niveles: ["Principiante", "Intermedio", "Avanzado"],
-    duracion: "60 min",
-    equipamiento: ["Gi (Kimono) o Rashguard (No-Gi)", "Protector bucal"],
-    imagen: "/images/disciplines/bjj.jpeg",
-  },
-};
-
 function titleToSlug(title: string): Disciplina | null {
   const t = title.toLowerCase();
   if (t.includes("k-1")) return "k1";
@@ -159,6 +80,9 @@ function titleToSlug(title: string): Disciplina | null {
   return null;
 }
 
+/* =========================================================================================
+   MODAL DISCIPLINA
+========================================================================================= */
 function ModalDisciplina({
   info,
   onClose,
@@ -244,7 +168,7 @@ function ModalDisciplina({
       {/* Fade styles */}
       <style jsx>{`
         .modal-backdrop {
-          background: rgba(0,0,0,0.6);
+          background: rgba(0, 0, 0, 0.6);
           animation: fadeIn 220ms ease-out forwards;
           opacity: 0;
         }
@@ -254,10 +178,15 @@ function ModalDisciplina({
           animation: riseIn 220ms ease-out forwards;
         }
         @keyframes fadeIn {
-          to { opacity: 1; }
+          to {
+            opacity: 1;
+          }
         }
         @keyframes riseIn {
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
       `}</style>
     </div>
@@ -265,126 +194,8 @@ function ModalDisciplina({
 }
 
 /* =========================================================================================
-   PLANES DE MEMBRESÍA: contenido extendido + MODAL
+   MODAL PLAN
 ========================================================================================= */
-type PlanSlug = "guerrero" | "samurai" | "shogun";
-
-type PlanInfo = {
-  slug: PlanSlug;
-  name: string;
-  price: string;
-  period: string;
-  tagline: string;
-  description: string;
-  features: string[];
-  extendedFeatures: string[];
-  ideal: string;
-  benefits: string[];
-  popular: boolean;
-  color: string;
-};
-
-const PLANES_INFO: Record<PlanSlug, PlanInfo> = {
-  guerrero: {
-    slug: "guerrero",
-    name: "Guerrero",
-    price: "$99",
-    period: "/mes",
-    tagline: "Perfecto para comenzar tu viaje",
-    description:
-      "Ideal para principiantes que buscan introducirse al mundo de las artes marciales con acceso completo a todas nuestras disciplinas.",
-    features: [
-      "Clases grupales ilimitadas",
-      "Acceso a todas las disciplinas",
-      "Acceso a vestuarios",
-      "Uso básico de equipo"
-    ],
-    extendedFeatures: [
-      "Hasta 5 clases por semana",
-      "Acceso a duchas y casilleros temporales",
-      "Kit de bienvenida con camiseta del dojo",
-      "Evaluación inicial gratuita",
-      "Acceso a eventos comunitarios"
-    ],
-    ideal: "Principiantes y estudiantes",
-    benefits: [
-      "Rutina estructurada",
-      "Comunidad de apoyo",
-      "Flexibilidad de horarios",
-      "Base sólida en fundamentos"
-    ],
-    popular: false,
-    color: "gray"
-  },
-  samurai: {
-    slug: "samurai",
-    name: "Samurái",
-    price: "$149",
-    period: "/mes",
-    tagline: "El equilibrio perfecto",
-    description:
-      "Para practicantes serios que buscan acelerar su progreso con entrenamiento personalizado y beneficios premium.",
-    features: [
-      "Todo lo del plan Guerrero",
-      "2 sesiones de entrenamiento personal",
-      "Reserva prioritaria de clases",
-      "Consulta nutricional",
-      "Acceso al equipo de competición"
-    ],
-    extendedFeatures: [
-      "Clases grupales ilimitadas",
-      "Plan de entrenamiento personalizado",
-      "Seguimiento de progreso mensual",
-      "Acceso a seminarios especiales",
-      "Descuentos en merchandise del dojo",
-      "Casillero semi-permanente"
-    ],
-    ideal: "Practicantes regulares y atletas amateur",
-    benefits: [
-      "Progreso acelerado",
-      "Atención personalizada",
-      "Nutrición optimizada",
-      "Preparación para competencias"
-    ],
-    popular: true,
-    color: "blue"
-  },
-  shogun: {
-    slug: "shogun",
-    name: "Shogun",
-    price: "$199",
-    period: "/mes",
-    tagline: "La experiencia definitiva",
-    description:
-      "Para guerreros élite que buscan la máxima dedicación, entrenamiento personal ilimitado y acceso exclusivo a todas las facilidades.",
-    features: [
-      "Todo lo del plan Samurái",
-      "Entrenamiento personal ilimitado",
-      "Casillero privado",
-      "Pases de invitado (2/mes)",
-      "Seminarios exclusivos"
-    ],
-    extendedFeatures: [
-      "Acceso 24/7 al dojo",
-      "Sesiones de sparring privadas",
-      "Plan nutricional completo",
-      "Masajes de recuperación mensuales",
-      "Acceso VIP a eventos",
-      "Equipo personalizado incluido",
-      "Línea directa con instructores"
-    ],
-    ideal: "Competidores profesionales y entusiastas serios",
-    benefits: [
-      "Máximo rendimiento",
-      "Recuperación optimizada",
-      "Acceso exclusivo",
-      "Preparación profesional"
-    ],
-    popular: false,
-    color: "gold"
-  }
-};
-
 function ModalPlan({
   info,
   onClose,
@@ -513,7 +324,7 @@ function ModalPlan({
       {/* Fade styles */}
       <style jsx>{`
         .modal-backdrop {
-          background: rgba(0,0,0,0.6);
+          background: rgba(0, 0, 0, 0.6);
           animation: fadeIn 220ms ease-out forwards;
           opacity: 0;
         }
@@ -523,10 +334,15 @@ function ModalPlan({
           animation: riseIn 220ms ease-out forwards;
         }
         @keyframes fadeIn {
-          to { opacity: 1; }
+          to {
+            opacity: 1;
+          }
         }
         @keyframes riseIn {
-          to { opacity: 1; transform: translateY(0) scale(1); }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
       `}</style>
     </div>
@@ -535,14 +351,30 @@ function ModalPlan({
 
 /* ========================================================================================= */
 
+// Disciplinas mostradas en la sección de cards
+const DISCIPLINAS_CARDS = [
+  { title: "K-1 Kickboxing", description: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos", image: "/images/disciplines/kickBoxing.jpeg" },
+  { title: "Muay Thai", description: "El arte de las ocho extremidades - puños, codos, rodillas y espinillas", image: "/images/disciplines/muyThai.jpeg" },
+  { title: "Boxeo", description: "La dulce ciencia del juego de piernas, timing y golpeo preciso", image: "/images/disciplines/boxeo.jpeg" },
+  { title: "Jiu-Jitsu", description: "Técnicas de lucha en el suelo y sumisión", image: "/images/disciplines/bjj.jpeg" },
+];
+
+// Planes mostrados en la sección de membresías
+const PLANES_CARDS = [
+  { name: "Guerrero", price: "$99", period: "/mes", features: ["Clases grupales ilimitadas", "Acceso a todas las disciplinas", "Acceso a vestuarios", "Uso básico de equipo"], popular: false },
+  { name: "Samurái", price: "$149", period: "/mes", features: ["Todo lo del plan Guerrero", "2 sesiones de entrenamiento personal", "Reserva prioritaria de clases", "Consulta nutricional", "Acceso al equipo de competición"], popular: true },
+  { name: "Shogun", price: "$199", period: "/mes", features: ["Todo lo del plan Samurái", "Entrenamiento personal ilimitado", "Casillero privado", "Pases de invitado (2/mes)", "Seminarios exclusivos"], popular: false },
+];
+
 export default function DojoWebsite() {
   // UI state
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [enviando, setEnviando] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [values, setValues] = useState<FormState>(initialForm);
   const [isClient, setIsClient] = useState(false);
-  
+
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -553,7 +385,7 @@ export default function DojoWebsite() {
   const recaptchaRef = useRef<any>(null);
 
   const handleRecaptchaChange = useCallback((token: string | null) => {
-    setValues(prev => {
+    setValues((prev) => {
       const next = { ...prev, recaptchaToken: token || "" };
       setErrors(validate(next));
       return next;
@@ -561,13 +393,13 @@ export default function DojoWebsite() {
   }, []);
 
   const resetRecaptcha = useCallback(() => {
-    try { 
-      recaptchaRef.current?.reset?.(); 
+    try {
+      recaptchaRef.current?.reset?.();
     } catch {}
-    setValues(prev => ({ ...prev, recaptchaToken: "" }));
-    setErrors(prev => { 
-      const { recaptcha, ...rest } = prev; 
-      return rest; 
+    setValues((prev) => ({ ...prev, recaptchaToken: "" }));
+    setErrors((prev) => {
+      const { recaptcha, ...rest } = prev;
+      return rest;
     });
   }, []);
 
@@ -633,7 +465,6 @@ export default function DojoWebsite() {
           return;
         }
 
-        // OK
         setStatusMessage("¡Gracias! 🥋 Recibimos tu consulta. Te contactaremos pronto para coordinar tu primera clase.");
         setValues(initialForm);
         setErrors({});
@@ -649,7 +480,7 @@ export default function DojoWebsite() {
     [values, resetRecaptcha]
   );
 
-  // ======= NUEVA FUNCIÓN DE WHATSAPP =======
+  // ======= FUNCIÓN DE WHATSAPP =======
   const handleWhatsAppSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -660,16 +491,21 @@ export default function DojoWebsite() {
 
       setEnviando(true);
       try {
-        // Crear mensaje para WhatsApp con emojis
         const mensaje = `🥊 *NUEVO CONTACTO - FIGHTING SPIRIT DOJO*
 
 👤 *Datos del interesado:*
 • Nombre: ${values.nombre} ${values.apellido}
 • Email: ${values.email}
 • Teléfono: ${values.telefono}
-• Disciplina: ${values.disciplina === 'k1' ? 'K-1 Kickboxing' : 
-               values.disciplina === 'muay-thai' ? 'Muay Thai' : 
-               values.disciplina === 'jiu-jitsu' ? 'Jiu-Jitsu' : 'Boxeo'}
+• Disciplina: ${
+          values.disciplina === "k1"
+            ? "K-1 Kickboxing"
+            : values.disciplina === "muay-thai"
+            ? "Muay Thai"
+            : values.disciplina === "jiu-jitsu"
+            ? "Jiu-Jitsu"
+            : "Boxeo"
+        }
 
 💬 *Mensaje:*
 ${values.mensaje}
@@ -677,24 +513,16 @@ ${values.mensaje}
 ---
 Enviado desde: ${window.location.href}`;
 
-        // Número del dueño del gym (CAMBIA ESTE NÚMERO)
-        const numeroWhatsApp = '598095964015'; // Formato: código país + número
-        
-        // URL de WhatsApp
+        const numeroWhatsApp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "598095964015";
         const whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
-        
-        // Abrir WhatsApp en nueva ventana
-        window.open(whatsappUrl, '_blank');
-        
-        // Mensaje de éxito y reset del form
+
+        window.open(whatsappUrl, "_blank");
+
         setStatusMessage("¡Perfecto! Se abrirá WhatsApp para enviar tu consulta 📱");
-        
-        // Reset formulario
         setValues(initialForm);
         setErrors({});
         formRef.current?.reset();
         resetRecaptcha();
-
       } catch (err: any) {
         setStatusMessage(`Error: ${err?.message || "Fallo de red"}`);
         resetRecaptcha();
@@ -708,71 +536,38 @@ Enviado desde: ${window.location.href}`;
   // ======= MODAL STATE + HANDLERS (DISCIPLINAS) =======
   const [openModal, setOpenModal] = useState<Disciplina | null>(null);
 
-  const handleSelectDisciplina = (slug: Disciplina) => {
-    // Preseleccionar en el formulario (state controlado)
+  const handleSelectDisciplina = useCallback((slug: Disciplina) => {
     setValues((prev) => {
       const next = { ...prev, disciplina: slug };
       setErrors(validate(next));
       return next;
     });
-  
-    // Cerrar modal PRIMERO
     setOpenModal(null);
-  
-    // Solo después de cerrar el modal, hacer el scroll y actualizar select
+    // Esperar que la animación de cierre del modal termine (220ms) antes de scrollear
     setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        // Forzar en el <select>
-        const select = document.querySelector<HTMLSelectElement>('select[name="disciplina"]');
-        if (select) {
-          select.value = slug;
-          select.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-        
-        // Scroll hacia el formulario SOLO desde el modal
-        if (formRef.current) {
-          formRef.current.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start',
-            inline: 'nearest'
-          });
-        }
-      }
-    }, 300); // Tiempo suficiente para que se cierre el modal
-  };
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
+  }, []);
 
   // ======= MODAL STATE + HANDLERS (PLANES) =======
   const [openPlanModal, setOpenPlanModal] = useState<PlanSlug | null>(null);
 
-  const handleSelectPlan = (slug: PlanSlug) => {
-    // Agregar el plan seleccionado al mensaje del formulario
+  const handleSelectPlan = useCallback((slug: PlanSlug) => {
     const planName = PLANES_INFO[slug].name;
     const planPrice = PLANES_INFO[slug].price + PLANES_INFO[slug].period;
-    
+
     setValues((prev) => {
       const mensajeConPlan = `Hola! Estoy interesado en el plan ${planName} (${planPrice}). ${prev.mensaje}`.trim();
-      const next = { 
-        ...prev, 
-        mensaje: mensajeConPlan
-      };
+      const next = { ...prev, mensaje: mensajeConPlan };
       setErrors(validate(next));
       return next;
     });
 
-    // Cerrar modal PRIMERO
     setOpenPlanModal(null);
-
-    // Scroll hacia el formulario después de cerrar el modal
     setTimeout(() => {
-      if (formRef.current) {
-        formRef.current.scrollIntoView({ 
-          behavior: 'smooth', 
-          block: 'start',
-          inline: 'nearest'
-        });
-      }
-    }, 300);
-  };
+      formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 250);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100">
@@ -804,14 +599,54 @@ Enviado desde: ${window.location.href}`;
                 Contacto
               </Link>
             </div>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            <Button
+              className="hidden md:inline-flex bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6"
+              onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+            >
+              Únete Ahora
+            </Button>
+            {/* Hamburger button — solo mobile */}
+            <button
+              className="md:hidden text-gray-300 hover:text-white p-2"
+              onClick={() => setMobileMenuOpen((prev) => !prev)}
+              aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+        </div>
+
+        {/* Menú mobile desplegable */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-gray-900 border-t border-gray-800 px-4 py-4 flex flex-col space-y-4">
+            {[
+              { href: "#about", label: "Acerca de" },
+              { href: "#disciplines", label: "Disciplinas" },
+              { href: "#schedule", label: "Horarios" },
+              { href: "#instructors", label: "Instructores" },
+              { href: "#membership", label: "Membresías" },
+              { href: "#contact", label: "Contacto" },
+            ].map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                className="text-gray-300 hover:text-blue-400 transition-colors font-medium text-lg"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {label}
+              </a>
+            ))}
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold w-full"
+              onClick={() => {
+                setMobileMenuOpen(false);
+                document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" });
+              }}
             >
               Únete Ahora
             </Button>
           </div>
-        </div>
+        )}
       </nav>
 
       {/* Hero Section */}
@@ -830,7 +665,7 @@ Enviado desde: ${window.location.href}`;
             <Button
               size="lg"
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-4 text-lg transition-all duration-300 hover:scale-105"
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
             >
               Inicia Tu Camino
             </Button>
@@ -838,7 +673,7 @@ Enviado desde: ${window.location.href}`;
               size="lg"
               variant="outline"
               className="border-gray-400 text-gray-300 hover:bg-gray-800 font-bold px-8 py-4 text-lg transition-all duration-300 bg-transparent"
-              onClick={() => document.getElementById('disciplines')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => document.getElementById("disciplines")?.scrollIntoView({ behavior: "smooth" })}
             >
               Ver Clases
             </Button>
@@ -854,7 +689,8 @@ Enviado desde: ${window.location.href}`;
               <h2 className="text-5xl font-black text-white mb-6">EL CAMINO DEL GUERRERO</h2>
               <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
               <p className="text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
-                Nuestro dojo encarna los principios ancestrales del Bushido mientras abraza metodologías de entrenamiento modernas.
+                Nuestro dojo encarna los principios ancestrales del Bushido mientras abraza metodologías de
+                entrenamiento modernas.
               </p>
             </div>
 
@@ -862,7 +698,9 @@ Enviado desde: ${window.location.href}`;
               <div>
                 <h3 className="text-3xl font-bold text-white mb-6">Nuestra Filosofía</h3>
                 <p className="text-gray-300 mb-6 leading-relaxed">
-                  Fundado en las siete virtudes del Bushido - Rectitud, Coraje, Benevolencia, Respeto, Honestidad, Honor y Lealtad - nuestro dojo es más que un lugar de entrenamiento. Es un santuario donde los guerreros se forjan a través de la disciplina, dedicación y respeto mutuo.
+                  Fundado en las siete virtudes del Bushido - Rectitud, Coraje, Benevolencia, Respeto, Honestidad,
+                  Honor y Lealtad - nuestro dojo es más que un lugar de entrenamiento. Es un santuario donde los
+                  guerreros se forjan a través de la disciplina, dedicación y respeto mutuo.
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="flex items-center space-x-3">
@@ -884,7 +722,13 @@ Enviado desde: ${window.location.href}`;
                 </div>
               </div>
               <div className="relative">
-                <Image src="/images/inside/insidedojo.jpeg" alt="Interior del Dojo" width={600} height={500} className="rounded-lg shadow-2xl" />
+                <Image
+                  src="/images/inside/insidedojo.jpeg"
+                  alt="Interior del Dojo"
+                  width={600}
+                  height={500}
+                  className="rounded-lg shadow-2xl"
+                />
               </div>
             </div>
           </div>
@@ -897,19 +741,25 @@ Enviado desde: ${window.location.href}`;
           <div className="text-center mb-16">
             <h2 className="text-5xl font-black text-white mb-6">DISCIPLINAS MARCIALES</h2>
             <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Domina múltiples artes de combate bajo un mismo techo con instrucción de clase mundial.</p>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Domina múltiples artes de combate bajo un mismo techo con instrucción de clase mundial.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { title: "K-1 Kickboxing", description: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos", image: "/images/disciplines/kickBoxing.jpeg" },
-              { title: "Muay Thai", description: "El arte de las ocho extremidades - puños, codos, rodillas y espinillas", image: "/images/disciplines/muyThai.jpeg" },
-              { title: "Boxeo", description: "La dulce ciencia del juego de piernas, timing y golpeo preciso", image: "/images/disciplines/boxeo.jpeg" },
-              { title: "Jiu-Jitsu", description: "Técnicas de lucha en el suelo y sumisión", image: "/images/disciplines/bjj.jpeg" },
-            ].map((discipline, index) => (
-              <Card key={index} className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300 hover:scale-105">
+            {DISCIPLINAS_CARDS.map((discipline, index) => (
+              <Card
+                key={index}
+                className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300 hover:scale-105"
+              >
                 <div className="relative overflow-hidden">
-                  <Image src={discipline.image} alt={discipline.title} width={400} height={300} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" />
+                  <Image
+                    src={discipline.image}
+                    alt={discipline.title}
+                    width={400}
+                    height={300}
+                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
                 </div>
                 <CardHeader>
@@ -932,7 +782,7 @@ Enviado desde: ${window.location.href}`;
           </div>
         </div>
 
-        {/* Render del Modal (Disciplinas) */}
+        {/* Modal Disciplinas */}
         {openModal && (
           <ModalDisciplina
             info={DISCIPLINAS_INFO[openModal]}
@@ -952,13 +802,7 @@ Enviado desde: ${window.location.href}`;
 
           <div className="max-w-6xl mx-auto">
             <div className="grid gap-6">
-              {[
-                { day: "Lunes", classes: [ { time: "6:00 AM", discipline: "Boxeo", instructor: "Sensei Takeshi", level: "Todos los Niveles" }, { time: "7:00 PM", discipline: "Muay Thai", instructor: "Kru Somchai", level: "Intermedio" }, ], },
-                { day: "Martes", classes: [ { time: "6:30 AM", discipline: "Jiu-Jitsu", instructor: "Professor Silva", level: "Principiante" }, { time: "7:30 PM", discipline: "K-1", instructor: "Coach Yamamoto", level: "Avanzado" }, ], },
-                { day: "Miércoles", classes: [ { time: "6:00 AM", discipline: "Boxeo", instructor: "Sensei Takeshi", level: "Todos los Niveles" }, { time: "7:00 PM", discipline: "Muay Thai", instructor: "Kru Somchai", level: "Principiante" }, ], },
-                { day: "Jueves", classes: [ { time: "6:30 AM", discipline: "Jiu-Jitsu", instructor: "Professor Silva", level: "Intermedio" }, { time: "7:30 PM", discipline: "K-1", instructor: "Coach Yamamoto", level: "Todos los Niveles" }, ], },
-                { day: "Viernes", classes: [ { time: "6:00 AM", discipline: "Boxeo", instructor: "Sensei Takeshi", level: "Avanzado" }, { time: "7:00 PM", discipline: "Mat Abierto", instructor: "Todos los Instructores", level: "Todos los Niveles" }, ], },
-              ].map((day, index) => (
+              {HORARIOS.map((day, index) => (
                 <Card key={index} className="bg-gray-900 border-gray-700">
                   <CardHeader>
                     <CardTitle className="text-white text-2xl font-bold flex items-center">
@@ -995,19 +839,25 @@ Enviado desde: ${window.location.href}`;
           <div className="text-center mb-16">
             <h2 className="text-5xl font-black text-white mb-6">INSTRUCTORES MAESTROS</h2>
             <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Aprende de luchadores de clase mundial y maestros certificados de su oficio.</p>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Aprende de luchadores de clase mundial y maestros certificados de su oficio.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {[
-              { name: "Mike Tyson", discipline: "Boxeo & K-1", experience: "15+ Años", achievements: "Ex Campeón WBC", image: "/images/instructor/mikeTyson.jpeg" },
-              { name: "Rodtang Jitmuangnon", discipline: "Muay Thai", experience: "20+ Años", achievements: "Campeón ONE Championship ", image: "/images/instructor/roadTang.jpeg" },
-              { name: "Leandro Lo", discipline: "Jiu-Jitsu Brasileño", experience: "18+ Años", achievements: "Cinturón Negro", image: "/images/instructor/leandro.jpeg" },
-              { name: "Llia Topuria", discipline: "Artes Marciales Mixtas", experience: "12+ Años", achievements: "Doble Campeon UFC", image: "/images/instructor/topuria.jpeg" },
-            ].map((instructor, index) => (
-              <Card key={index} className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300">
+            {INSTRUCTORES.map((instructor, index) => (
+              <Card
+                key={index}
+                className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300"
+              >
                 <div className="relative overflow-hidden">
-                  <Image src={instructor.image} alt={instructor.name} width={300} height={400} className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300" />
+                  <Image
+                    src={instructor.image}
+                    alt={instructor.name}
+                    width={300}
+                    height={400}
+                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent" />
                 </div>
                 <CardHeader className="text-center">
@@ -1035,21 +885,23 @@ Enviado desde: ${window.location.href}`;
           <div className="text-center mb-16">
             <h2 className="text-5xl font-black text-white mb-6">PLANES DE MEMBRESÍA</h2>
             <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">Elige el camino que se adapte a tu viaje guerrero.</p>
+            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+              Elige el camino que se adapte a tu viaje guerrero.
+            </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              { name: "Guerrero", price: "$99", period: "/mes", features: ["Clases grupales ilimitadas", "Acceso a todas las disciplinas", "Acceso a vestuarios", "Uso básico de equipo"], popular: false },
-              { name: "Samurái", price: "$149", period: "/mes", features: ["Todo lo del plan Guerrero", "2 sesiones de entrenamiento personal", "Reserva prioritaria de clases", "Consulta nutricional", "Acceso al equipo de competición"], popular: true },
-              { name: "Shogun", price: "$199", period: "/mes", features: ["Todo lo del plan Samurái", "Entrenamiento personal ilimitado", "Casillero privado", "Pases de invitado (2/mes)", "Seminarios exclusivos"], popular: false },
-            ].map((plan, index) => (
+            {PLANES_CARDS.map((plan, index) => (
               <Card
                 key={index}
-                className={`relative overflow-hidden ${plan.popular ? "bg-blue-900 border-blue-400 scale-105" : "bg-gray-900 border-gray-700"} transition-all duration-300 hover:scale-105`}
+                className={`relative overflow-hidden ${
+                  plan.popular ? "bg-blue-900 border-blue-400 scale-105" : "bg-gray-900 border-gray-700"
+                } transition-all duration-300 hover:scale-105`}
               >
                 {plan.popular && (
-                  <div className="absolute top-0 left-0 right-0 bg-blue-400 text-gray-900 text-center py-2 font-bold text-sm">MÁS POPULAR</div>
+                  <div className="absolute top-0 left-0 right-0 bg-blue-400 text-gray-900 text-center py-2 font-bold text-sm">
+                    MÁS POPULAR
+                  </div>
                 )}
                 <CardHeader className={`text-center ${plan.popular ? "pt-12" : ""}`}>
                   <CardTitle className="text-white text-2xl font-bold">{plan.name}</CardTitle>
@@ -1067,14 +919,19 @@ Enviado desde: ${window.location.href}`;
                       </li>
                     ))}
                   </ul>
-                  {/* Botón: abre modal de plan correcto */}
                   <Button
-                    className={`w-full font-bold ${plan.popular ? "bg-blue-400 hover:bg-blue-500 text-gray-900" : "bg-blue-600 hover:bg-blue-700 text-white"}`}
+                    className={`w-full font-bold ${
+                      plan.popular
+                        ? "bg-blue-400 hover:bg-blue-500 text-gray-900"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }`}
                     onClick={() => {
                       const slug: PlanSlug =
-                        plan.name.toLowerCase() === "guerrero" ? "guerrero" :
-                        plan.name.toLowerCase() === "samurái" ? "samurai" :
-                        "shogun";
+                        plan.name.toLowerCase() === "guerrero"
+                          ? "guerrero"
+                          : plan.name.toLowerCase() === "samurái"
+                          ? "samurai"
+                          : "shogun";
                       setOpenPlanModal(slug);
                     }}
                   >
@@ -1085,7 +942,7 @@ Enviado desde: ${window.location.href}`;
             ))}
           </div>
 
-          {/* Render del Modal de Plan */}
+          {/* Modal Plan */}
           {openPlanModal && (
             <ModalPlan
               info={PLANES_INFO[openPlanModal]}
@@ -1257,14 +1114,13 @@ Enviado desde: ${window.location.href}`;
                           size="normal"
                         />
                       ) : (
-                        <div className="text-gray-500 text-sm text-center">
-                          reCAPTCHA no configurado
-                        </div>
+                        <div className="text-gray-500 text-sm text-center">reCAPTCHA no configurado</div>
                       )}
                     </div>
                     {errors.recaptcha && (
                       <p className="text-red-400 text-sm mt-3 text-center flex items-center justify-center gap-2">
-                        <span>⚠️</span>{errors.recaptcha}
+                        <span>⚠️</span>
+                        {errors.recaptcha}
                       </p>
                     )}
                   </div>
@@ -1273,19 +1129,27 @@ Enviado desde: ${window.location.href}`;
                 <Button
                   type="submit"
                   disabled={enviando || !isValid}
-                  className={`w-full font-bold py-3 text-lg ${isValid && !enviando ? "bg-blue-600 hover:bg-blue-700 text-white" : "bg-gray-600 text-gray-400 cursor-not-allowed"}`}
+                  className={`w-full font-bold py-3 text-lg ${
+                    isValid && !enviando
+                      ? "bg-blue-600 hover:bg-blue-700 text-white"
+                      : "bg-gray-600 text-gray-400 cursor-not-allowed"
+                  }`}
                 >
                   {enviando ? "Enviando..." : "Comienza Tu Entrenamiento"}
                 </Button>
                 {statusMessage && (
-                  <p className={`text-center font-medium ${statusMessage.toLowerCase().includes("error") ? "text-red-400" : "text-green-400"}`}>
+                  <p
+                    className={`text-center font-medium ${
+                      statusMessage.toLowerCase().includes("error") ? "text-red-400" : "text-green-400"
+                    }`}
+                  >
                     {statusMessage}
                   </p>
                 )}
               </form>
             </div>
 
-            {/* Mapa del Dojo - OpenStreetMap Gratuito */}
+            {/* Mapa del Dojo */}
             <div className="mt-16">
               <div className="bg-gray-800 rounded-lg p-8">
                 <div className="text-center mb-6">
@@ -1294,7 +1158,6 @@ Enviado desde: ${window.location.href}`;
                   <p className="text-gray-300 mb-4">Encuentra fácilmente nuestro dojo</p>
                 </div>
 
-                {/* Mapa Interactivo Gratuito */}
                 <StaticMap
                   center={{ lat: -34.8996499, lng: -56.1712952 }}
                   zoom={15}

@@ -1328,22 +1328,90 @@ Enviado desde: ${window.location.href}`;
               </form>
             </div>
 
-            {/* Mapa del Dojo */}
-            <div className="mt-16">
-              <div className="bg-gray-800 rounded-lg p-8">
-                <div className="text-center mb-6">
-                  <MapPin className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-                  <h4 className="text-xl font-bold text-white mb-2">Ubicación del Dojo</h4>
-                  <p className="text-gray-300 mb-4">Encuentra fácilmente nuestro dojo</p>
+            {/* Ubicación del Dojo */}
+            <div className="mt-20 lg:col-span-2">
+              <div className="text-center mb-10">
+                <h3 className="text-3xl font-black text-white mb-3">CÓMO LLEGAR</h3>
+                <div className="w-16 h-1 bg-blue-400 mx-auto mb-4" />
+                <p className="text-gray-400">Visitanos en nuestra sede principal en Montevideo</p>
+              </div>
+
+              <div className="grid lg:grid-cols-3 rounded-2xl overflow-hidden border border-gray-700 shadow-2xl">
+                {/* Mapa interactivo */}
+                <div className="lg:col-span-2">
+                  <StaticMap
+                    center={{ lat: -34.8996499, lng: -56.1712952 }}
+                    className="h-full"
+                    title="Fighting Spirit Dojo"
+                  />
                 </div>
 
-                <StaticMap
-                  center={{ lat: -34.8996499, lng: -56.1712952 }}
-                  zoom={15}
-                  className="w-full"
-                  title="Fighting Spirit Dojo"
-                  address="Dr. Martín C. Martínez 1627, Montevideo"
-                />
+                {/* Panel de información */}
+                <div className="bg-gray-900 p-8 flex flex-col justify-between border-t lg:border-t-0 lg:border-l border-gray-700">
+                  <div className="space-y-6">
+                    {/* Dirección */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-400/10 border border-blue-400/20 flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Dirección</p>
+                        <p className="text-white font-semibold leading-snug">Dr. Martín C. Martínez 1627</p>
+                        <p className="text-gray-400 text-sm mt-0.5">Montevideo, Uruguay</p>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-gray-700/60" />
+
+                    {/* Horarios */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-400/10 border border-blue-400/20 flex items-center justify-center flex-shrink-0">
+                        <Clock className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Horarios</p>
+                        <div className="space-y-1 text-sm">
+                          <div className="flex justify-between gap-4">
+                            <span className="text-gray-400">Lun – Vie</span>
+                            <span className="text-white font-medium">6:00 – 22:00</span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="text-gray-400">Sábado</span>
+                            <span className="text-white font-medium">8:00 – 20:00</span>
+                          </div>
+                          <div className="flex justify-between gap-4">
+                            <span className="text-gray-400">Domingo</span>
+                            <span className="text-white font-medium">10:00 – 18:00</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="h-px bg-gray-700/60" />
+
+                    {/* Teléfono */}
+                    <div className="flex items-start gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-400/10 border border-blue-400/20 flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-5 h-5 text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Teléfono</p>
+                        <p className="text-white font-semibold">(555) 123-DOJO</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  <a
+                    href={`https://www.openstreetmap.org/search?query=${encodeURIComponent("Dr. Martín C. Martínez 1627, Montevideo")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-8 flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors duration-200 group"
+                  >
+                    <MapPin className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                    Abrir en el mapa
+                  </a>
+                </div>
               </div>
             </div>
           </div>

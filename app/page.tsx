@@ -8,11 +8,11 @@ import { MapPin, Phone, Mail, Clock, Users, Award, Zap, Shield, Target, Swords, 
 import Image from "next/image";
 import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
+import HorariosSection from "@/components/HorariosSection";
 import dynamic from "next/dynamic";
 
 import { DISCIPLINAS_INFO, type DisciplinaInfo } from "@/lib/data/disciplinas";
 import { PLANES_INFO, type PlanSlug, type PlanInfo } from "@/lib/data/planes";
-import { HORARIOS } from "@/lib/data/horarios";
 import { INSTRUCTORES } from "@/lib/data/instructores";
 
 // ⛑️ reCAPTCHA dinámico (sin SSR)
@@ -815,36 +815,8 @@ Enviado desde: ${window.location.href}`;
             <h2 className="text-5xl font-black text-white mb-6">HORARIO DE CLASES</h2>
             <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
           </div>
-
           <div className="max-w-6xl mx-auto">
-            <div className="grid gap-6">
-              {HORARIOS.map((day, index) => (
-                <Card key={index} className="bg-gray-900 border-gray-700">
-                  <CardHeader>
-                    <CardTitle className="text-white text-2xl font-bold flex items-center">
-                      <Clock className="h-6 w-6 text-blue-400 mr-3" />
-                      {day.day}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      {day.classes.map((classItem, classIndex) => (
-                        <div key={classIndex} className="flex items-center justify-between p-4 bg-gray-800 rounded-lg">
-                          <div>
-                            <div className="text-blue-400 font-bold text-lg">{classItem.time}</div>
-                            <div className="text-white font-semibold">{classItem.discipline}</div>
-                            <div className="text-gray-400 text-sm">{classItem.instructor}</div>
-                          </div>
-                          <Badge variant="outline" className="border-blue-400 text-blue-400">
-                            {classItem.level}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <HorariosSection onReservar={handleSelectDisciplina} />
           </div>
         </div>
       </section>

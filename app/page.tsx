@@ -17,6 +17,7 @@ import dynamic from "next/dynamic";
 import { DISCIPLINAS_INFO, type DisciplinaInfo } from "@/lib/data/disciplinas";
 import { PLANES_INFO, type PlanSlug, type PlanInfo } from "@/lib/data/planes";
 import { INSTRUCTORES } from "@/lib/data/instructores";
+import { DOJO_CONFIG } from "@/lib/data/dojo.config";
 
 // ⛑️ reCAPTCHA dinámico (sin SSR)
 const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), {
@@ -571,7 +572,7 @@ export default function DojoWebsite() {
 
       setEnviando(true);
       try {
-        const mensaje = `🥊 *NUEVO CONTACTO - FIGHTING SPIRIT DOJO*
+        const mensaje = `🥊 *NUEVO CONTACTO - ${DOJO_CONFIG.name.toUpperCase()}*
 
 👤 *Datos del interesado:*
 • Nombre: ${values.nombre} ${values.apellido}
@@ -608,7 +609,7 @@ Enviado desde: ${window.location.href}`;
           }),
         }).catch(() => {}); // silencioso — WhatsApp funciona igual si Django falla
 
-        const numeroWhatsApp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "598095964015";
+        const numeroWhatsApp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? DOJO_CONFIG.whatsapp;
         const whatsappUrl = `https://wa.me/${numeroWhatsApp}?text=${encodeURIComponent(mensaje)}`;
 
         window.open(whatsappUrl, "_blank");
@@ -672,7 +673,7 @@ Enviado desde: ${window.location.href}`;
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Swords className="h-8 w-8 text-blue-400" />
-              <span className="text-2xl font-bold text-white">Fighting Spirit Dojo</span>
+              <span className="text-2xl font-bold text-white">{DOJO_CONFIG.name}</span>
             </div>
             <div className="hidden md:flex space-x-8">
               <Link href="#about" className="text-gray-300 hover:text-blue-400 transition-colors font-medium">
@@ -750,11 +751,11 @@ Enviado desde: ${window.location.href}`;
         <Image src="/images/hero/mural.jpeg" alt="Mural Samurái" fill className="object-cover" priority sizes="100vw" />
         <div className="relative z-20 text-center max-w-4xl mx-auto px-4">
           <h1 className="text-6xl md:text-8xl font-black mb-6 text-white leading-tight">
-            FORJA TU
-            <span className="block text-blue-400">ESPÍRITU GUERRERO</span>
+            {DOJO_CONFIG.hero.headingLine1}
+            <span className="block text-blue-400">{DOJO_CONFIG.hero.headingLine2}</span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Domina las artes marciales ancestrales en un entorno moderno. Disciplina, honor y fuerza te esperan.
+            {DOJO_CONFIG.hero.subtitle}
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -938,11 +939,7 @@ Enviado desde: ${window.location.href}`;
           {/* Stats strip */}
           <FadeIn delay={0.1}>
             <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-16 text-center">
-              {[
-                { value: "65+", label: "Años de experiencia combinada" },
-                { value: "4",   label: "Instructores de élite" },
-                { value: "30+", label: "Títulos internacionales" },
-              ].map((stat) => (
+              {DOJO_CONFIG.stats.map((stat) => (
                 <div key={stat.label} className="bg-gray-800/60 rounded-xl py-4 px-2 border border-gray-700">
                   <div className="text-3xl font-black text-blue-400">{stat.value}</div>
                   <div className="text-gray-400 text-xs mt-1 leading-tight">{stat.label}</div>
@@ -1110,7 +1107,7 @@ Enviado desde: ${window.location.href}`;
 
           {/* Trust strip */}
           <div className="flex flex-wrap justify-center gap-6 mt-12 text-gray-500 text-sm">
-            {["Sin contrato de permanencia", "Cancelación en cualquier momento", "Primer mes con garantía de satisfacción"].map((item) => (
+            {DOJO_CONFIG.trustItems.map((item) => (
               <div key={item} className="flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0" />
                 <span>{item}</span>
@@ -1148,21 +1145,21 @@ Enviado desde: ${window.location.href}`;
                   <MapPin className="h-6 w-6 text-blue-400" />
                   <div>
                     <div className="text-white font-semibold">Ubicación</div>
-                    <div className="text-gray-300">Dr. Martín C. Martínez 1627, Montevideo</div>
+                    <div className="text-gray-300">{DOJO_CONFIG.address}, {DOJO_CONFIG.city}</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <Phone className="h-6 w-6 text-blue-400" />
                   <div>
                     <div className="text-white font-semibold">Teléfono</div>
-                    <div className="text-gray-300">(555) 123-DOJO</div>
+                    <div className="text-gray-300">{DOJO_CONFIG.phone}</div>
                   </div>
                 </div>
                 <div className="flex items-center space-x-4">
                   <Mail className="h-6 w-6 text-blue-400" />
                   <div>
                     <div className="text-white font-semibold">Email</div>
-                    <div className="text-gray-300">info@bushidodojo.com</div>
+                    <div className="text-gray-300">{DOJO_CONFIG.email}</div>
                   </div>
                 </div>
               </div>
@@ -1172,18 +1169,12 @@ Enviado desde: ${window.location.href}`;
               <div>
                 <h4 className="text-xl font-bold text-white mb-4">Horarios de Entrenamiento</h4>
                 <div className="space-y-2 text-gray-300">
-                  <div className="flex justify-between">
-                    <span>Lunes - Viernes</span>
-                    <span>6:00 AM - 10:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Sábado</span>
-                    <span>8:00 AM - 8:00 PM</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Domingo</span>
-                    <span>10:00 AM - 6:00 PM</span>
-                  </div>
+                  {DOJO_CONFIG.hours.map((h) => (
+                    <div key={h.label} className="flex justify-between">
+                      <span>{h.label}</span>
+                      <span>{h.value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1340,9 +1331,9 @@ Enviado desde: ${window.location.href}`;
                 {/* Mapa interactivo */}
                 <div className="lg:col-span-2">
                   <StaticMap
-                    center={{ lat: -34.8996499, lng: -56.1712952 }}
+                    center={DOJO_CONFIG.coords}
                     className="h-full"
-                    title="Fighting Spirit Dojo"
+                    title={DOJO_CONFIG.name}
                   />
                 </div>
 
@@ -1356,8 +1347,8 @@ Enviado desde: ${window.location.href}`;
                       </div>
                       <div>
                         <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Dirección</p>
-                        <p className="text-white font-semibold leading-snug">Dr. Martín C. Martínez 1627</p>
-                        <p className="text-gray-400 text-sm mt-0.5">Montevideo, Uruguay</p>
+                        <p className="text-white font-semibold leading-snug">{DOJO_CONFIG.address}</p>
+                        <p className="text-gray-400 text-sm mt-0.5">{DOJO_CONFIG.city}</p>
                       </div>
                     </div>
 
@@ -1371,18 +1362,12 @@ Enviado desde: ${window.location.href}`;
                       <div className="flex-1">
                         <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-2">Horarios</p>
                         <div className="space-y-1 text-sm">
-                          <div className="flex justify-between gap-4">
-                            <span className="text-gray-400">Lun – Vie</span>
-                            <span className="text-white font-medium">6:00 – 22:00</span>
-                          </div>
-                          <div className="flex justify-between gap-4">
-                            <span className="text-gray-400">Sábado</span>
-                            <span className="text-white font-medium">8:00 – 20:00</span>
-                          </div>
-                          <div className="flex justify-between gap-4">
-                            <span className="text-gray-400">Domingo</span>
-                            <span className="text-white font-medium">10:00 – 18:00</span>
-                          </div>
+                          {DOJO_CONFIG.hours.map((h) => (
+                            <div key={h.label} className="flex justify-between gap-4">
+                              <span className="text-gray-400">{h.label}</span>
+                              <span className="text-white font-medium">{h.value}</span>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </div>
@@ -1396,14 +1381,14 @@ Enviado desde: ${window.location.href}`;
                       </div>
                       <div>
                         <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Teléfono</p>
-                        <p className="text-white font-semibold">(555) 123-DOJO</p>
+                        <p className="text-white font-semibold">{DOJO_CONFIG.phone}</p>
                       </div>
                     </div>
                   </div>
 
                   {/* CTA */}
                   <a
-                    href={`https://www.openstreetmap.org/search?query=${encodeURIComponent("Dr. Martín C. Martínez 1627, Montevideo")}`}
+                    href={`https://www.openstreetmap.org/search?query=${encodeURIComponent(`${DOJO_CONFIG.address}, ${DOJO_CONFIG.city}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="mt-8 flex items-center justify-center gap-2 w-full bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl transition-colors duration-200 group"
@@ -1424,11 +1409,11 @@ Enviado desde: ${window.location.href}`;
           <div className="flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <Swords className="h-8 w-8 text-blue-400" />
-              <span className="text-2xl font-bold text-white">Fighting Spirit Dojo</span>
+              <span className="text-2xl font-bold text-white">{DOJO_CONFIG.name}</span>
             </div>
             <div className="text-gray-400 text-center md:text-right">
-              <p>&copy; 2025 Dojo Bushido. Todos los derechos reservados.</p>
-              <p className="text-sm mt-1">Forja tu espíritu guerrero con honor y disciplina.</p>
+              <p>&copy; {DOJO_CONFIG.copyrightYear} {DOJO_CONFIG.legalName}. Todos los derechos reservados.</p>
+              <p className="text-sm mt-1">{DOJO_CONFIG.tagline}</p>
             </div>
           </div>
         </div>

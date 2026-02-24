@@ -137,29 +137,5 @@ Permite:
 
 ---
 
-## Deploy
 
-### Frontend → Vercel
 
-1. Conectá el repositorio en [vercel.com](https://vercel.com)
-2. Configurá las variables de entorno en el dashboard de Vercel
-3. Deploy automático en cada push a `main`
-
-### Backend → Railway
-
-1. Creá un nuevo proyecto en [railway.app](https://railway.app)
-2. Conectá el repositorio apuntando a la carpeta `/backend`
-3. Configurá las variables de entorno
-4. Railway detecta el `Procfile` automáticamente
-
----
-
-## Capturas
-
-> Agregá capturas del sitio aquí
-
----
-
-## Licencia
-
-MIT

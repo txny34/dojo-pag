@@ -9,6 +9,9 @@ import Image from "next/image";
 import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
 import HorariosSection from "@/components/HorariosSection";
+import TestimoniosSection from "@/components/TestimoniosSection";
+import WhatsAppButton from "@/components/WhatsAppButton";
+import FadeIn from "@/components/FadeIn";
 import dynamic from "next/dynamic";
 
 import { DISCIPLINAS_INFO, type DisciplinaInfo } from "@/lib/data/disciplinas";
@@ -830,18 +833,20 @@ Enviado desde: ${window.location.href}`;
       {/* Disciplines Section */}
       <section id="disciplines" className="py-20 bg-gray-900">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black text-white mb-6">DISCIPLINAS MARCIALES</h2>
-            <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Domina múltiples artes de combate bajo un mismo techo con instrucción de clase mundial.
-            </p>
-          </div>
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-black text-white mb-6">DISCIPLINAS MARCIALES</h2>
+              <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                Domina múltiples artes de combate bajo un mismo techo con instrucción de clase mundial.
+              </p>
+            </div>
+          </FadeIn>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto">
             {DISCIPLINAS_CARDS.map((discipline, index) => (
+              <FadeIn key={index} delay={index * 0.1}>
               <div
-                key={index}
                 className="relative h-[420px] rounded-2xl overflow-hidden group cursor-pointer ring-2 ring-transparent hover:ring-white/20 transition-all duration-300 shadow-lg"
                 onClick={() => {
                   const slug = titleToSlug(discipline.title);
@@ -887,6 +892,7 @@ Enviado desde: ${window.location.href}`;
                   </div>
                 </div>
               </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -904,10 +910,12 @@ Enviado desde: ${window.location.href}`;
       {/* Schedule Section */}
       <section id="schedule" className="py-20 bg-gray-800">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black text-white mb-6">HORARIO DE CLASES</h2>
-            <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-          </div>
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-black text-white mb-6">HORARIO DE CLASES</h2>
+              <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
+            </div>
+          </FadeIn>
           <div className="max-w-6xl mx-auto">
             <HorariosSection onReservar={handleSelectDisciplina} />
           </div>
@@ -917,32 +925,36 @@ Enviado desde: ${window.location.href}`;
       {/* Instructors Section */}
       <section id="instructors" className="py-20 bg-gray-900">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black text-white mb-6">INSTRUCTORES MAESTROS</h2>
-            <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Aprende de luchadores de clase mundial y maestros certificados de su oficio.
-            </p>
-          </div>
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-black text-white mb-6">INSTRUCTORES MAESTROS</h2>
+              <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                Aprende de luchadores de clase mundial y maestros certificados de su oficio.
+              </p>
+            </div>
+          </FadeIn>
 
           {/* Stats strip */}
-          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-16 text-center">
-            {[
-              { value: "65+", label: "Años de experiencia combinada" },
-              { value: "4",   label: "Instructores de élite" },
-              { value: "30+", label: "Títulos internacionales" },
-            ].map((stat) => (
-              <div key={stat.label} className="bg-gray-800/60 rounded-xl py-4 px-2 border border-gray-700">
-                <div className="text-3xl font-black text-blue-400">{stat.value}</div>
-                <div className="text-gray-400 text-xs mt-1 leading-tight">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+          <FadeIn delay={0.1}>
+            <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-16 text-center">
+              {[
+                { value: "65+", label: "Años de experiencia combinada" },
+                { value: "4",   label: "Instructores de élite" },
+                { value: "30+", label: "Títulos internacionales" },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-gray-800/60 rounded-xl py-4 px-2 border border-gray-700">
+                  <div className="text-3xl font-black text-blue-400">{stat.value}</div>
+                  <div className="text-gray-400 text-xs mt-1 leading-tight">{stat.label}</div>
+                </div>
+              ))}
+            </div>
+          </FadeIn>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {INSTRUCTORES.map((instructor, index) => (
+              <FadeIn key={index} delay={index * 0.1}>
               <div
-                key={index}
                 className="relative h-[460px] rounded-2xl overflow-hidden group cursor-pointer ring-2 ring-transparent hover:ring-blue-400/50 transition-all duration-300 shadow-lg hover:shadow-blue-500/20 hover:shadow-2xl"
               >
                 {/* Barra de color por disciplina */}
@@ -1009,6 +1021,7 @@ Enviado desde: ${window.location.href}`;
                   </div>
                 </div>
               </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -1017,18 +1030,20 @@ Enviado desde: ${window.location.href}`;
       {/* Membership Section */}
       <section id="membership" className="py-20 bg-gray-800">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-black text-white mb-6">PLANES DE MEMBRESÍA</h2>
-            <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
-            <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-              Elige el camino que se adapte a tu viaje guerrero.
-            </p>
-          </div>
+          <FadeIn>
+            <div className="text-center mb-16">
+              <h2 className="text-5xl font-black text-white mb-6">PLANES DE MEMBRESÍA</h2>
+              <div className="w-24 h-1 bg-blue-400 mx-auto mb-8" />
+              <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+                Elige el camino que se adapte a tu viaje guerrero.
+              </p>
+            </div>
+          </FadeIn>
 
           <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {PLANES_CARDS.map((plan, index) => (
+              <FadeIn key={index} delay={index * 0.12}>
               <div
-                key={index}
                 className={`relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300 ${
                   plan.popular
                     ? "bg-gray-900 border-blue-400 shadow-[0_0_40px_rgba(96,165,250,0.25)] scale-105"
@@ -1089,6 +1104,7 @@ Enviado desde: ${window.location.href}`;
                   </Button>
                 </div>
               </div>
+              </FadeIn>
             ))}
           </div>
 
@@ -1113,8 +1129,11 @@ Enviado desde: ${window.location.href}`;
         </div>
       </section>
 
+      {/* Testimonios Section */}
+      <TestimoniosSection />
+
       {/* Contact Section */}
-      <section id="contact" className="py-20 bg-gray-900">
+      <section id="contact" className="py-20 bg-gray-800">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-5xl font-black text-white mb-6">ENCUENTRA TU DOJO</h2>
@@ -1346,6 +1365,9 @@ Enviado desde: ${window.location.href}`;
           </div>
         </div>
       </footer>
+
+      {/* WhatsApp flotante */}
+      <WhatsAppButton />
     </div>
   );
 }

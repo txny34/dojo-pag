@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Phone, Mail, Clock, Users, Award, Zap, Shield, Target, Swords, Menu, X } from "lucide-react";
+import { MapPin, Phone, Mail, Clock, Users, Award, Zap, Shield, Target, Swords, Menu, X, CheckCircle2, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import StaticMap from "@/components/StaticMap";
@@ -354,17 +354,93 @@ function ModalPlan({
 
 // Disciplinas mostradas en la sección de cards
 const DISCIPLINAS_CARDS = [
-  { title: "K-1 Kickboxing", description: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos", image: "/images/disciplines/kickBoxing.jpeg" },
-  { title: "Muay Thai", description: "El arte de las ocho extremidades - puños, codos, rodillas y espinillas", image: "/images/disciplines/muyThai.jpeg" },
-  { title: "Boxeo", description: "La dulce ciencia del juego de piernas, timing y golpeo preciso", image: "/images/disciplines/boxeo.jpeg" },
-  { title: "Jiu-Jitsu", description: "Técnicas de lucha en el suelo y sumisión", image: "/images/disciplines/bjj.jpeg" },
+  {
+    title: "K-1 Kickboxing",
+    description: "Golpeo de alta intensidad combinando puñetazos, patadas y rodillazos para una potencia devastadora.",
+    image: "/images/disciplines/kickBoxing.jpeg",
+    accentColor: "bg-purple-500",
+    textColor: "text-purple-400",
+    tags: ["Alta Intensidad", "Golpeo", "Cardio Extremo"],
+    num: "01",
+  },
+  {
+    title: "Muay Thai",
+    description: "El arte de las ocho extremidades — puños, codos, rodillas y espinillas en perfecta armonía.",
+    image: "/images/disciplines/muyThai.jpeg",
+    accentColor: "bg-red-500",
+    textColor: "text-red-400",
+    tags: ["8 Extremidades", "Contacto Completo", "Tradición"],
+    num: "02",
+  },
+  {
+    title: "Boxeo",
+    description: "La dulce ciencia del juego de piernas, timing y golpeo preciso que forja campeones.",
+    image: "/images/disciplines/boxeo.jpeg",
+    accentColor: "bg-orange-500",
+    textColor: "text-orange-400",
+    tags: ["Timing", "Movimiento de Pies", "Defensa"],
+    num: "03",
+  },
+  {
+    title: "Jiu-Jitsu",
+    description: "El arte suave — dominá el suelo con técnica, apalancamiento y sumisiones que no requieren fuerza bruta.",
+    image: "/images/disciplines/bjj.jpeg",
+    accentColor: "bg-green-500",
+    textColor: "text-green-400",
+    tags: ["Grappling", "Sumisiones", "Apalancamiento"],
+    num: "04",
+  },
 ];
 
 // Planes mostrados en la sección de membresías
 const PLANES_CARDS = [
-  { name: "Guerrero", price: "$99", period: "/mes", features: ["Clases grupales ilimitadas", "Acceso a todas las disciplinas", "Acceso a vestuarios", "Uso básico de equipo"], popular: false },
-  { name: "Samurái", price: "$149", period: "/mes", features: ["Todo lo del plan Guerrero", "2 sesiones de entrenamiento personal", "Reserva prioritaria de clases", "Consulta nutricional", "Acceso al equipo de competición"], popular: true },
-  { name: "Shogun", price: "$199", period: "/mes", features: ["Todo lo del plan Samurái", "Entrenamiento personal ilimitado", "Casillero privado", "Pases de invitado (2/mes)", "Seminarios exclusivos"], popular: false },
+  {
+    name: "Guerrero",
+    planSlug: "guerrero" as const,
+    price: "$99",
+    period: "/mes",
+    description: "Perfecto para comenzar tu viaje marcial.",
+    features: [
+      "Clases grupales ilimitadas",
+      "Acceso a todas las disciplinas",
+      "Acceso a vestuarios",
+      "Uso básico de equipo",
+    ],
+    popular: false,
+    highlight: false,
+  },
+  {
+    name: "Samurái",
+    planSlug: "samurai" as const,
+    price: "$149",
+    period: "/mes",
+    description: "El balance ideal para progresar rápido.",
+    features: [
+      "Todo lo del plan Guerrero",
+      "2 sesiones de entrenamiento personal",
+      "Reserva prioritaria de clases",
+      "Consulta nutricional",
+      "Acceso al equipo de competición",
+    ],
+    popular: true,
+    highlight: true,
+  },
+  {
+    name: "Shogun",
+    planSlug: "shogun" as const,
+    price: "$199",
+    period: "/mes",
+    description: "La experiencia definitiva para élite.",
+    features: [
+      "Todo lo del plan Samurái",
+      "Entrenamiento personal ilimitado",
+      "Casillero privado",
+      "Pases de invitado (2/mes)",
+      "Seminarios exclusivos",
+    ],
+    popular: false,
+    highlight: false,
+  },
 ];
 
 export default function DojoWebsite() {
@@ -762,38 +838,55 @@ Enviado desde: ${window.location.href}`;
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5 max-w-7xl mx-auto">
             {DISCIPLINAS_CARDS.map((discipline, index) => (
-              <Card
+              <div
                 key={index}
-                className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300 hover:scale-105"
+                className="relative h-[420px] rounded-2xl overflow-hidden group cursor-pointer ring-2 ring-transparent hover:ring-white/20 transition-all duration-300 shadow-lg"
+                onClick={() => {
+                  const slug = titleToSlug(discipline.title);
+                  if (slug) setOpenModal(slug);
+                }}
               >
-                <div className="relative overflow-hidden">
-                  <Image
-                    src={discipline.image}
-                    alt={discipline.title}
-                    width={400}
-                    height={300}
-                    className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/80 to-transparent" />
+                {/* Barra de color y número */}
+                <div className={`absolute top-0 inset-x-0 h-1 z-10 ${discipline.accentColor}`} />
+                <div className={`absolute top-4 left-4 z-10 text-5xl font-black opacity-20 ${discipline.textColor} select-none leading-none`}>
+                  {discipline.num}
                 </div>
-                <CardHeader>
-                  <CardTitle className="text-white text-xl font-bold">{discipline.title}</CardTitle>
-                  <CardDescription className="text-gray-300">{discipline.description}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-                    onClick={() => {
-                      const slug = titleToSlug(discipline.title);
-                      if (slug) setOpenModal(slug);
-                    }}
-                  >
-                    Saber Más
-                  </Button>
-                </CardContent>
-              </Card>
+
+                {/* Foto */}
+                <Image
+                  src={discipline.image}
+                  alt={discipline.title}
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+
+                {/* Gradiente */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/50 to-transparent" />
+
+                {/* Info inferior */}
+                <div className="absolute bottom-0 inset-x-0 p-5">
+                  {/* Siempre visible */}
+                  <h3 className={`text-xl font-black mb-1 ${discipline.textColor}`}>{discipline.title}</h3>
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {discipline.tags.map((tag) => (
+                      <span key={tag} className="text-[11px] bg-white/10 text-gray-300 px-2 py-0.5 rounded-full">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {/* Expandible al hover */}
+                  <div className="max-h-0 overflow-hidden group-hover:max-h-32 transition-all duration-400 ease-out">
+                    <p className="text-gray-300 text-sm leading-relaxed mb-3">{discipline.description}</p>
+                    <div className={`inline-flex items-center gap-1.5 text-sm font-semibold ${discipline.textColor}`}>
+                      <span>Explorar disciplina</span>
+                      <span className="text-lg leading-none">→</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -832,36 +925,90 @@ Enviado desde: ${window.location.href}`;
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {/* Stats strip */}
+          <div className="grid grid-cols-3 gap-4 max-w-2xl mx-auto mb-16 text-center">
+            {[
+              { value: "65+", label: "Años de experiencia combinada" },
+              { value: "4",   label: "Instructores de élite" },
+              { value: "30+", label: "Títulos internacionales" },
+            ].map((stat) => (
+              <div key={stat.label} className="bg-gray-800/60 rounded-xl py-4 px-2 border border-gray-700">
+                <div className="text-3xl font-black text-blue-400">{stat.value}</div>
+                <div className="text-gray-400 text-xs mt-1 leading-tight">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
             {INSTRUCTORES.map((instructor, index) => (
-              <Card
+              <div
                 key={index}
-                className="bg-gray-800 border-gray-700 overflow-hidden group hover:border-blue-400 transition-all duration-300"
+                className="relative h-[460px] rounded-2xl overflow-hidden group cursor-pointer ring-2 ring-transparent hover:ring-blue-400/50 transition-all duration-300 shadow-lg hover:shadow-blue-500/20 hover:shadow-2xl"
               >
-                <div className="relative overflow-hidden">
-                  <Image
-                    src={instructor.image}
-                    alt={instructor.name}
-                    width={300}
-                    height={400}
-                    className="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-gray-900/90 to-transparent" />
+                {/* Barra de color por disciplina */}
+                <div className={`absolute top-0 inset-x-0 h-1 z-10 ${instructor.accentColor}`} />
+
+                {/* Badge de experiencia */}
+                <div className="absolute top-4 right-4 z-10 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full border border-white/20">
+                  {instructor.experience}
                 </div>
-                <CardHeader className="text-center">
-                  <CardTitle className="text-white text-xl font-bold">{instructor.name}</CardTitle>
-                  <CardDescription className="text-blue-400 font-semibold">{instructor.discipline}</CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-center space-x-2">
-                      <Award className="h-4 w-4 text-blue-400" />
-                      <span className="text-gray-300 text-sm">{instructor.experience}</span>
-                    </div>
-                    <p className="text-gray-400 text-sm">{instructor.achievements}</p>
+
+                {/* Foto */}
+                <Image
+                  src={instructor.image}
+                  alt={instructor.name}
+                  fill
+                  className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                />
+
+                {/* Gradiente estático */}
+                <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/30 to-transparent" />
+
+                {/* Info inferior */}
+                <div className="absolute bottom-0 inset-x-0 p-5">
+                  {/* Siempre visible */}
+                  <h3 className="text-white text-xl font-black leading-tight">{instructor.name}</h3>
+                  <p className={`text-sm font-semibold mb-1 ${instructor.textColor}`}>{instructor.discipline}</p>
+                  <div className="flex items-center gap-1.5 text-xs text-gray-300">
+                    <Award className="h-3 w-3 text-blue-400 shrink-0" />
+                    <span>{instructor.achievements}</span>
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Expandible al hover */}
+                  <div className="max-h-0 overflow-hidden group-hover:max-h-56 transition-all duration-500 ease-out">
+                    <div className="pt-4 space-y-3">
+                      <p className="text-gray-300 text-xs italic leading-relaxed">
+                        &ldquo;{instructor.quote}&rdquo;
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {instructor.specialty.map((s) => (
+                          <span
+                            key={s}
+                            className="text-[11px] bg-white/10 backdrop-blur-sm text-gray-200 px-2 py-0.5 rounded-full"
+                          >
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                      {instructor.disciplinaSlug ? (
+                        <button
+                          onClick={() => handleSelectDisciplina(instructor.disciplinaSlug!)}
+                          className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors"
+                        >
+                          Entrenar con {instructor.name.split(" ")[0]}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => document.getElementById("contact")?.scrollIntoView({ behavior: "smooth" })}
+                          className="w-full py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-gray-200 font-semibold text-sm transition-colors"
+                        >
+                          Consultar disponibilidad
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -878,55 +1025,80 @@ Enviado desde: ${window.location.href}`;
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
             {PLANES_CARDS.map((plan, index) => (
-              <Card
+              <div
                 key={index}
-                className={`relative overflow-hidden ${
-                  plan.popular ? "bg-blue-900 border-blue-400 scale-105" : "bg-gray-900 border-gray-700"
-                } transition-all duration-300 hover:scale-105`}
+                className={`relative flex flex-col rounded-2xl overflow-hidden border transition-all duration-300 ${
+                  plan.popular
+                    ? "bg-gray-900 border-blue-400 shadow-[0_0_40px_rgba(96,165,250,0.25)] scale-105"
+                    : "bg-gray-900 border-gray-700 hover:border-gray-500"
+                }`}
               >
+                {/* Badge popular */}
                 {plan.popular && (
-                  <div className="absolute top-0 left-0 right-0 bg-blue-400 text-gray-900 text-center py-2 font-bold text-sm">
-                    MÁS POPULAR
+                  <div className="flex items-center justify-center gap-1.5 bg-blue-500 text-white text-xs font-black py-2 px-4 tracking-widest uppercase">
+                    <Star className="h-3 w-3 fill-white" />
+                    Más Popular
+                    <Star className="h-3 w-3 fill-white" />
                   </div>
                 )}
-                <CardHeader className={`text-center ${plan.popular ? "pt-12" : ""}`}>
-                  <CardTitle className="text-white text-2xl font-bold">{plan.name}</CardTitle>
-                  <div className="text-center">
-                    <span className="text-4xl font-black text-blue-400">{plan.price}</span>
-                    <span className="text-gray-300">{plan.period}</span>
+
+                <div className="flex flex-col flex-1 p-7">
+                  {/* Header */}
+                  <div className="mb-6">
+                    <h3 className="text-white text-2xl font-black mb-1">{plan.name}</h3>
+                    <p className="text-gray-400 text-sm">{plan.description}</p>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3 mb-6">
-                    {plan.features.map((feature: string, featureIndex: number) => (
-                      <li key={featureIndex} className="flex items-center space-x-3">
-                        <div className="w-2 h-2 bg-blue-400 rounded-full" />
-                        <span className="text-gray-300">{feature}</span>
+
+                  {/* Precio */}
+                  <div className="flex items-end gap-1 mb-6">
+                    <span className={`text-5xl font-black ${plan.popular ? "text-blue-400" : "text-white"}`}>
+                      {plan.price}
+                    </span>
+                    <span className="text-gray-400 mb-1.5">{plan.period}</span>
+                  </div>
+
+                  {/* Separador */}
+                  <div className={`h-px mb-6 ${plan.popular ? "bg-blue-400/30" : "bg-gray-700"}`} />
+
+                  {/* Features */}
+                  <ul className="space-y-3 mb-8 flex-1">
+                    {plan.features.map((feature, fi) => (
+                      <li key={fi} className="flex items-start gap-3">
+                        <CheckCircle2
+                          className={`h-4 w-4 mt-0.5 shrink-0 ${
+                            plan.popular ? "text-blue-400" : "text-gray-500"
+                          }`}
+                        />
+                        <span className="text-gray-300 text-sm leading-snug">{feature}</span>
                       </li>
                     ))}
                   </ul>
+
+                  {/* CTA */}
                   <Button
-                    className={`w-full font-bold ${
+                    className={`w-full font-bold text-base py-5 rounded-xl ${
                       plan.popular
-                        ? "bg-blue-400 hover:bg-blue-500 text-gray-900"
-                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                        ? "bg-blue-500 hover:bg-blue-400 text-white shadow-lg shadow-blue-500/30"
+                        : "bg-gray-700 hover:bg-gray-600 text-white"
                     }`}
-                    onClick={() => {
-                      const slug: PlanSlug =
-                        plan.name.toLowerCase() === "guerrero"
-                          ? "guerrero"
-                          : plan.name.toLowerCase() === "samurái"
-                          ? "samurai"
-                          : "shogun";
-                      setOpenPlanModal(slug);
-                    }}
+                    onClick={() => setOpenPlanModal(plan.planSlug)}
                   >
-                    Elegir Plan
+                    {plan.popular ? "Empezar ahora" : "Elegir plan"}
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Trust strip */}
+          <div className="flex flex-wrap justify-center gap-6 mt-12 text-gray-500 text-sm">
+            {["Sin contrato de permanencia", "Cancelación en cualquier momento", "Primer mes con garantía de satisfacción"].map((item) => (
+              <div key={item} className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-blue-400 shrink-0" />
+                <span>{item}</span>
+              </div>
             ))}
           </div>
 

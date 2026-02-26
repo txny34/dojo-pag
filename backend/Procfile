@@ -1,1 +1,1 @@
-web: gunicorn backend.wsgi:application --log-file - --workers 3 --threads 2 --timeout 120
+web: python manage.py migrate --no-input && gunicorn backend.wsgi:application --log-file - --workers 3 --threads 2 --timeout 120

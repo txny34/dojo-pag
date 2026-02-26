@@ -25,7 +25,8 @@ class ContactoViewSet(viewsets.ModelViewSet):
 
         # 2) Verificar reCAPTCHA
         remote_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR")
-        if not verify_recaptcha(token, remote_ip):
+        ok, _ = verify_recaptcha(token, remote_ip)
+        if not ok:
             return Response({"detail": "Captcha inválido"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 3) Continuar con la creación normal

@@ -27,7 +27,8 @@ class Contacto(models.Model):
     disciplina = models.CharField(max_length=50, choices=DISCIPLINAS_CHOICES)
     mensaje = models.TextField(blank=True, null=True, max_length=500)
     fecha_envio = models.DateTimeField(auto_now_add=True)
-    contactado = models.BooleanField(default=False)  # Para seguimiento
+    contactado = models.BooleanField(default=False)
+    notas = models.TextField(blank=True, default="")
 
     def __str__(self):
         return f"{self.nombre} {self.apellido} - {self.disciplina}"

@@ -19,6 +19,11 @@ from django.urls import path, include
 from rest_framework import routers
 from contactos.views import ContactoViewSet
 
+# --- Branding del panel de administración ---
+admin.site.site_header = "Dojo — Panel de Administración"
+admin.site.site_title = "Dojo Admin"
+admin.site.index_title = "Gestión de contactos"
+
 router = routers.DefaultRouter()
 router.register(r"contactos", ContactoViewSet)
 

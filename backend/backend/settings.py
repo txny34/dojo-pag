@@ -105,6 +105,15 @@ CSRF_TRUSTED_ORIGINS = [o.strip() for o in _frontends if o.strip()] + [
     "https://*.railway.app",
 ]
 
+# En local (DEBUG=True) permitir el frontend de Next.js en localhost
+if DEBUG:
+    _localhost_origins = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    CORS_ALLOWED_ORIGINS = list(set(CORS_ALLOWED_ORIGINS + _localhost_origins))
+    CSRF_TRUSTED_ORIGINS = list(set(CSRF_TRUSTED_ORIGINS + _localhost_origins))
+
 # --- Proxy TLS detrás de Railway ---
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SESSION_COOKIE_SECURE = not DEBUG

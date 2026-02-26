@@ -1,4 +1,4 @@
-# Fighting Spirit Dojo
+# nombre del dojo
 
 Sitio web completo para un gimnasio de artes marciales. Landing page profesional con formulario de contacto dual (WhatsApp + base de datos), panel de administración y backend REST.
 

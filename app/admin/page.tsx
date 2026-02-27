@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Swords, LogIn, RefreshCw, Search, Users, CheckCircle2,
   Clock, Download, LogOut, ChevronUp, ChevronDown,
@@ -61,7 +61,9 @@ export default function AdminPage() {
   const [contactos, setContactos]     = useState<Contacto[]>([]);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState("");
+  const [refreshError, setRefreshError] = useState("");
   const [updating, setUpdating]       = useState<Set<number>>(new Set());
+  const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [selected, setSelected]       = useState<Set<number>>(new Set());
   const [filter, setFilter]           = useState<FilterKey>("todos");
   const [search, setSearch]           = useState("");
@@ -79,6 +81,7 @@ export default function AdminPage() {
     return fetch("/api/admin/contactos", {
       method,
       headers: { "x-admin-password": password, "Content-Type": "application/json" },
+      cache: method === "GET" ? "no-store" : "default",
       ...(body ? { body: JSON.stringify(body) } : {}),
     });
   }
@@ -92,6 +95,7 @@ export default function AdminPage() {
       if (!res.ok) { setError("Error al cargar contactos."); return; }
       const data = await res.json();
       setContactos(Array.isArray(data) ? data : (data.results ?? []));
+      setLastRefresh(new Date());
       setAuthed(true);
     } catch { setError("No se pudo conectar con el servidor."); }
     finally   { setLoading(false); }
@@ -99,9 +103,18 @@ export default function AdminPage() {
 
   async function refresh() {
     setLoading(true);
+    setRefreshError("");
     try {
       const res = await apiFetch();
-      if (res.ok) { const data = await res.json(); setContactos(Array.isArray(data) ? data : (data.results ?? [])); }
+      if (res.ok) {
+        const data = await res.json();
+        setContactos(Array.isArray(data) ? data : (data.results ?? []));
+        setLastRefresh(new Date());
+      } else {
+        setRefreshError(`Error al actualizar (${res.status}). El backend puede estar iniciando, intentá en unos segundos.`);
+      }
+    } catch {
+      setRefreshError("No se pudo conectar con el servidor. Verificá tu conexión.");
     } finally { setLoading(false); }
   }
 
@@ -225,6 +238,14 @@ export default function AdminPage() {
     return sortDir === "asc" ? <ChevronUp className="h-3 w-3 text-blue-400" /> : <ChevronDown className="h-3 w-3 text-blue-400" />;
   }
 
+  // ─── Auto-refresh cada 60 s mientras está logueado ───────────────────────────
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!authed) return;
+    const id = setInterval(() => { refresh(); }, 60_000);
+    return () => clearInterval(id);
+  }, [authed]);
+
   // ─── LOGIN ───────────────────────────────────────────────────────────────────
   if (!authed) {
     return (
@@ -285,9 +306,12 @@ export default function AdminPage() {
           </div>
           <div className="flex items-center gap-4">
             <button onClick={refresh} disabled={loading}
-              className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm transition-colors">
+              className="flex items-center gap-1.5 text-gray-400 hover:text-white text-sm transition-colors"
+              title={lastRefresh ? `Última actualización: ${lastRefresh.toLocaleTimeString("es-UY")}` : "Actualizar"}>
               <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">Actualizar</span>
+              <span className="hidden sm:inline">
+                {lastRefresh ? lastRefresh.toLocaleTimeString("es-UY", { hour: "2-digit", minute: "2-digit" }) : "Actualizar"}
+              </span>
             </button>
             <button onClick={() => { setAuthed(false); setContactos([]); setPassword(""); }}
               className="flex items-center gap-1.5 text-gray-500 hover:text-red-400 text-sm transition-colors">
@@ -299,6 +323,12 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 space-y-5">
+        {refreshError && (
+          <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+            <p className="text-yellow-400 text-sm">{refreshError}</p>
+            <button onClick={() => setRefreshError("")} className="text-yellow-500 hover:text-yellow-300 text-xs shrink-0">✕</button>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">

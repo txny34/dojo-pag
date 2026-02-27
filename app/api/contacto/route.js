@@ -37,7 +37,7 @@ async function verifyRecaptcha(token) {
 
 async function ping(url) {
   try {
-    const r = await fetch(`${url}/admin/login/`, { method: 'HEAD', cache: 'no-store' });
+    const r = await fetch(`${url}/admin/login/`, { method: 'HEAD', cache: 'no-store', signal: AbortSignal.timeout(8000) });
     return r.status; // 302 esperado
   } catch (e) {
     return 0; // no conecta
@@ -76,6 +76,7 @@ export async function POST(req) {
     const url = `${base}/contactos/`;
     const r = await fetch(url, { method:'POST', headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ nombre, apellido, email, telefono, disciplina, mensaje }),
+      signal: AbortSignal.timeout(25000),
     });
     if (r.ok) status.django = 'success';
     else status.errors.push(`Django: ${r.status} ${await r.text()}`);

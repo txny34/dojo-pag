@@ -1,9 +1,7 @@
-from rest_framework import viewsets, status
-from rest_framework.response import Response
+from rest_framework import viewsets
 from rest_framework.throttling import AnonRateThrottle
 from .models import Contacto
 from .serializers import ContactoSerializer
-from .utils.recaptcha import verify_recaptcha  # ← ruta relativa dentro de la app
 
 
 class ContactoCreateThrottle(AnonRateThrottle):
@@ -18,17 +16,4 @@ class ContactoViewSet(viewsets.ModelViewSet):
         if self.action == "create":
             return [ContactoCreateThrottle()]
         return []
-
-    def create(self, request, *args, **kwargs):
-        # 1) Leer token del body (JSON del front)
-        token = request.data.get("recaptchaToken") or request.data.get("recaptcha_token")
-
-        # 2) Verificar reCAPTCHA
-        remote_ip = request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip() or request.META.get("REMOTE_ADDR")
-        ok, _ = verify_recaptcha(token, remote_ip)
-        if not ok:
-            return Response({"detail": "Captcha inválido"}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 3) Continuar con la creación normal
-        return super().create(request, *args, **kwargs)
 
